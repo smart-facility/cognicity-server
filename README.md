@@ -6,7 +6,7 @@ CogniCity
 
 
 ### About
-Cognicity-server is the NodeJS server module for the CogniCity framework, responsible for serving reports and web content. For detailed framework documentation see [http://talltom.github.io/cognicity].
+Cognicity-server is the NodeJS server module for the CogniCity framework, responsible for serving reports and web content. For detailed framework documentation see [http://talltom.github.io/cognicity]((http://talltom.github.io/cognicity/index.html).
 
 ### Dependencies
 * NodeJS version 0.10.12 or later
@@ -18,7 +18,7 @@ Cognicity-server is the NodeJS server module for the CogniCity framework, respon
 * Memory-Cache version 0.0.5 or later
 
 ### Installation
-Download the source code for cognicity-server from github: [http://github.com/talltom/cognicity-server] or view the CogniCity installation documentation at [http://talltom.github.io/cognicity]
+Download the source code for cognicity-server from github: [http://github.com/talltom/cognicity-server] or view the CogniCity installation documentation at [http://talltom.github.io/cognicity](http://talltom.github.io/cognicity/index.html).
 
 Install the node dependencies in package.json using NPM: `npm install`
 
