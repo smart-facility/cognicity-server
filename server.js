@@ -21,7 +21,7 @@ else{
 var app = express(); 
 
 // Logging
-var logfile = fs.createWriteStream(__dirname+config.instance+".log", {flags:'a'});
+var logfile = fs.createWriteStream(__dirname+'/'+config.instance+".log", {flags:'a'});
 app.use(express.logger({stream:logfile}));
 
 // Static file server
