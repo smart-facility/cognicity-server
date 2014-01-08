@@ -56,7 +56,7 @@ project-name daemon stopped
 ```
 
 ### Logging
-Express logger writes to cognicity-server/logs/project-name.log
+Express logger writes to project-name.log
 
 ### License
 This software is released under the GPLv3 License. See License.txt for details.
