@@ -1,0 +1,17 @@
+{
+	"name": "cognicity-server",
+	"description": "Web & data server for CogniCity",
+	"version": "0.0.1",
+	"author": "Tomas Holderness",
+	"preferGlobal":false,
+	"private": true,
+	"dependencies": {
+		"express": ">=3.2.6",
+		"daemonize2": ">=0.4.2",
+		"pg": ">=2.0.0",
+		"memory-cache":">=0.0.5"
+	},
+	"engines":{
+		"node":">=0.10.12"
+		}
+}
