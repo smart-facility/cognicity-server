@@ -2,8 +2,8 @@ CogniCity
 ===========
 **Open Source GeoSocial Intelligence Framework**
 
-cognicity-server: NodeJS server for CogniCity data and web files.
------------------------------------------------------------------
+####cognicity-server: NodeJS server for CogniCity data and web files.
+
 
 ### About
 Cognicity-server is the NodeJS server module for the CogniCity framework, responsible for serving reports and web content. For detailed framework documentation see [http://talltom.github.io/cognicity].
@@ -52,7 +52,7 @@ $node daemon.js sample-config.js status
 project-name running on port: 8080
 
 $node daemon.js sample-config.js stop
-mj-server daemon stopped
+project-name daemon stopped
 ```
 
 ### Logging
