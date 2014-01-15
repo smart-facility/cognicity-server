@@ -18,7 +18,7 @@ Cognicity-server is the NodeJS server module for the CogniCity framework, respon
 * Memory-Cache version 0.0.5 or later
 
 ### Installation
-Download the source code for cognicity-server from github: [http://github.com/smart-facility/cognicity-server] or view the CogniCity installation documentation at [http://cognicity.info](http://cognicity.info).
+Download the source code for cognicity-server from github: [http://github.com/smart-facility/cognicity-server](http://github.com/smart-facility/cognicity-server) or view the CogniCity installation documentation at [http://cognicity.info](http://cognicity.info).
 
 Install the node dependencies in package.json using NPM: `npm install`
 
