@@ -13,8 +13,8 @@ FILES=test
 # want to sync from there to other nodes
 
 i=2
-while [ $i -lt $2 ]; do
-    rsync -av FILES $1$i
+while [ $i -le $2 ]; do
+    rsync -av $FILES $1$i:~/
     let i=i+1
 done
 
