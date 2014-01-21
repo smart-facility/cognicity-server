@@ -9,7 +9,10 @@
 # Set this to the list of files to be synced:
 FILES=test
 
-i=0
+# Note assume nodes start from 1, and that the files are on node 1 and we
+# want to sync from there to other nodes
+
+i=2
 while [ $i -lt $2 ]; do
     rsync -av FILES $1$i
     let i=i+1
