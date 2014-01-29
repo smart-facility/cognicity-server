@@ -28,10 +28,9 @@ app.use(express.logger({stream:logfile}));
 app.use(app.router);
 app.use('/'+config.url_prefix, express.static(config.public_dir));
 
-
-// Route root path to English page.
+// Route root path to some place.
 app.get('/', function(req, res){
-	res.redirect('/'+config.url_prefix);
+	res.redirect('/'+config.root_redirect);
 	})
 
 //Function for database calls

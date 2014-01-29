@@ -14,6 +14,9 @@ config.public_dir = '/project-name/cognicity-web/'
 // Optional URL prefix - e.g. http://localhost/project-name/
 config.url_prefix = config.instance; 
 
+// Optional redirect path for root ['/'] requests
+config.root_redirect = '';
+
 // Default cache time expiry
 config.cache_timeout = 600000; // Data cache expiry (default 600000ms/10 minutes)
 
