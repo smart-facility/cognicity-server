@@ -7,7 +7,7 @@
 # 2nd command line parameter = number of web instances
 
 # Set this to the list of files to be synced:
-FILES=test
+FILES="mj-server-config.js mj-server-groups-config.js"
 
 # Note assume nodes start from 1, and that the files are on node 1 and we
 # want to sync from there to other nodes

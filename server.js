@@ -28,10 +28,22 @@ app.use(express.logger({stream:logfile}));
 app.use(app.router);
 app.use('/'+config.url_prefix, express.static(config.public_dir));
 
+// Enable CORS for data streams
+app.all('/'+config.url_prefix+'/data/*', function(req, res, next){
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+	next();
+});
+
+
 // Route root path to some place.
 app.get('/', function(req, res){
 	res.redirect('/'+config.root_redirect);
-	})
+	});
+
+app.get('/'+config.url_prefix, function(req, res){
+	res.redirect('/'+config.root_redirect);
+	});
 
 //Function for database calls
 function dataQuery(pgcon, sql, callback){
@@ -76,7 +88,7 @@ function getReports(options, callback){
 	}
 	
 	//SQL
-	var sql = "SELECT 'FeatureCollection' As type, array_to_json(array_agg(f)) As features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT pkey, created_at, source, text) As l)) As properties FROM "+config.pg.tbl_reports+" As lg WHERE created_at >= to_timestamp("+param.start+") AND created_at <= to_timestamp("+param.end+") ORDER BY created_at DESC LIMIT "+param.limit+")As f ;"
+	var sql = "SELECT 'FeatureCollection' As type, array_to_json(array_agg(f)) As features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT pkey, created_at at time zone 'ICT' created_at, source, text) As l)) As properties FROM "+config.pg.tbl_reports+" As lg WHERE created_at >= to_timestamp("+param.start+") AND created_at <= to_timestamp("+param.end+") ORDER BY created_at DESC LIMIT "+param.limit+")As f ;"
 		
 	// Call data query
 	dataQuery(config.pg.conString, sql, callback)
@@ -93,7 +105,7 @@ function getUnConfirmedReports(options, callback){
 	var param = ({
 		start: config.pg.start, 
 		end:  Math.floor(Date.now()/1000), // now
-		limit: config.pg.limit // user adjustable limit
+		limit: config.pg.uc_limit // user adjustable limit
 	});
 	
 	for (key in param){
