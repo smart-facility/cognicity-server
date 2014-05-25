@@ -28,6 +28,7 @@ config.pg.conString = 'postgres://postgres:password@localhost:5432/cognicity'
 config.pg.tbl_reports = 'reports';
 config.pg.tbl_reports_unconfirmed = 'tweet_reports_unconfirmed';
 config.pg.limit = '1000'; // Limit number of rows returned in a query
+config.pg.uc_limit = '1000'; // Limit number of unconfirmed reports
 config.pg.start = -1; // Optional default start date for report queries in Unix time (default -1, no limit)
 
 module.exports = config;
