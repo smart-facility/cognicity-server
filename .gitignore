@@ -1,3 +1,4 @@
 mj-server-groups-config.js
 mj-server.log
 node_modules/
+*.log
