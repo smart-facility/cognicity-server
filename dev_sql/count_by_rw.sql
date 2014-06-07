@@ -1,0 +1,2 @@
+﻿SELECT batas_rw.objectid, COALESCE(count.count,0) FROM batas_rw LEFT OUTER JOIN (SELECT b.objectid, count(a.pkey) count FROM tweet_reports a, batas_rw b WHERE ST_Within(a.the_geom, b.the_geom)
+GROUP BY b.objectid) as count ON (batas_rw.objectid = count.objectid); 
