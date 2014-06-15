@@ -218,7 +218,7 @@ if (config.data == true){
 
 				opts = {}
 
-				if (req.param.level == 'rw'){
+				if (req.param('level') == 'rw'){
 
 					if (cache.get('count_rw') == null){
 						getCountRW(opts, function(data){
