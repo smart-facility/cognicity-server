@@ -1,0 +1,3 @@
+﻿SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT lg.objectid, COALESCE(count.count,0) count) As l)) As properties FROM batas_rw As lg LEFT OUTER JOIN (SELECT b.objectid, count(a.pkey) count FROM unconfirmed_reports a, batas_rw b WHERE ST_Within(a.the_geom, b.the_geom)
+GROUP BY b.objectid) as count ON (lg.objectid = count.objectid)
+ORDER BY count DESC) As f;

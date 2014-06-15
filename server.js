@@ -151,6 +151,31 @@ function cacheCountRW(data){
 	cache.put('count_rw', data, config.cache_timeout);
 }
 
+function getCountVillage(options, callback){
+
+	// Default parameters for this data
+	var param = ({
+		start: config.pg.start,
+		end:  Math.floor(Date.now()/1000), // now
+		limit: config.pg.limit // user adjustable limit
+	});
+
+	for (key in param){
+		if (options.hasOwnProperty(key)){
+			param[key] = options[key]
+		}
+	}
+	//Note - still needs parameterising and normalising
+	//SQL
+	var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT lg.objectid, lg.kel_name, COALESCE(count.count,0) count) As l)) As properties FROM batas_village As lg LEFT OUTER JOIN (SELECT b.objectid, count(a.pkey) count FROM unconfirmed_reports a, batas_village b WHERE ST_Within(a.the_geom, b.the_geom) GROUP BY b.objectid) as count ON (lg.objectid = count.objectid) ORDER BY count DESC) As f;"
+	// Call data query
+	dataQuery(config.pg.conString, sql, callback)
+}
+
+function cacheCountVillage(data){
+	cache.put('count_village', data, config.cache_timeout);
+}
+
 if (config.data == true){
 	// Data route for reports
 	app.get('/'+config.url_prefix+'/data/reports.json', function(req, res){
@@ -193,17 +218,35 @@ if (config.data == true){
 
 				opts = {}
 
-				if (cache.get('count_rw') == null){
-					getCountRW(opts, function(data){
-						cacheCountRW(data);
+				if (req.param.level == 'rw'){
+
+					if (cache.get('count_rw') == null){
+						getCountRW(opts, function(data){
+							cacheCountRW(data);
+							res.writeHead(200, {"Content-type":"application/json"});
+							res.end(JSON.stringify(data[0], "utf8")); //get only db row.
+							})
+						}
+
+					else {
 						res.writeHead(200, {"Content-type":"application/json"});
-						res.end(JSON.stringify(data[0], "utf8")); //get only db row.
-						})
+						res.end(JSON.stringify(cache.get('count_rw')[0], "utf8"));
+						}
 					}
 
 				else {
-					res.writeHead(200, {"Content-type":"application/json"});
-					res.end(JSON.stringify(cache.get('count_rw')[0], "utf8"));
+						if (cache.get('count_village') == null){
+							getCountVillage(opts, function(data){
+								cacheCountVillage(data);
+								res.writeHead(200, {"Content-type":"application/json"});
+								res.end(JSON.stringify(data[0], "utf8")); //get only db row.
+								})
+							}
+
+						else {
+							res.writeHead(200, {"Content-type":"application/json"});
+							res.end(JSON.stringify(cache.get('count_village')[0], "utf8"));
+							}
 					}
 	});
 
