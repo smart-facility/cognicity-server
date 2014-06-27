@@ -229,7 +229,8 @@ function writeGeoJSON(res, data, format){
 	if (format === 'topojson'){
 		//Clone the object because topojson edits in place.
 		var topo = JSON.parse(JSON.stringify(data));
-		topojson.topology({collection:topo});
+		var topology = topojson.topology({collection:topo},{"property-transform":function(object){return object.properties;}});
+		
 		
 		res.writeHead(200, {"Content-type":"application/json"});
 		res.end(JSON.stringify(topo, "utf8"));
