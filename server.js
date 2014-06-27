@@ -223,14 +223,22 @@ if (config.data == true){
 
 // Function to return GeoJson or TopoJson data to stream
 function writeGeoJSON(res, data, format){
-	if (format == 'topojson'){
-		var output = topojson.topology({collection:data});
+
+	//var output = data;
+
+	if (format === 'topojson'){
+		//Clone the object because topojson edits in place.
+		var topo = JSON.parse(JSON.stringify(data));
+		topojson.topology({collection:topo});
+		
+		res.writeHead(200, {"Content-type":"application/json"});
+		res.end(JSON.stringify(topo, "utf8"));
+		
 		}
 	else{
-		var output = data;
-	}
-	res.writeHead(200, {"Content-type":"application/json"});
-	res.end(JSON.stringify(output, "utf8"));
+		res.writeHead(200, {"Content-type":"application/json"});
+		res.end(JSON.stringify(data, "utf8"));
+		}
 }
 
 // 404 handling
