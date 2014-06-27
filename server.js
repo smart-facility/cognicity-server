@@ -233,7 +233,7 @@ function writeGeoJSON(res, data, format){
 		
 		
 		res.writeHead(200, {"Content-type":"application/json"});
-		res.end(JSON.stringify(topo, "utf8"));
+		res.end(JSON.stringify(topology, "utf8"));
 		
 		}
 	else{
