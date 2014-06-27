@@ -21,16 +21,20 @@ config.root_redirect = '';
 config.cache_timeout = 600000; // Data cache expiry (default 600000ms/10 minutes)
 
 config.data = true; // Enable data routes
+config.aggregates = true; // Enable aggregate data outputs
 
 //Postgres database connection
 config.pg = {};
 config.pg.conString = 'postgres://postgres:password@localhost:5432/cognicity'
 config.pg.tbl_reports = 'reports';
 config.pg.tbl_reports_unconfirmed = 'tweet_reports_unconfirmed';
+
+//Optional support for report aggregation, required if config.data.aggregates set to true.
 config.pg.aggregate_levels = { // Different scales of polygon layers for aggregate counts in polygon. First polygon layer is default.
   'village':'tbl_villages', //default
   'ward':'tbl_wards'
 };
+
 config.pg.limit = '1000'; // Limit number of rows returned in a query
 config.pg.uc_limit = '1000'; // Limit number of unconfirmed reports
 config.pg.start = -1; // Optional default start date for report queries in Unix time (default -1, no limit)

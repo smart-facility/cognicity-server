@@ -190,36 +190,40 @@ if (config.data == true){
 		}
 	});
 
-	//Data route for spatio-temporal aggregates
-	app.get('/'+config.url_prefix+'/data/aggregates.json', function(req, res){
 
-				// Organise parameter options
-				if (req.param('level')){
-					var level = req.param('level');
-					var tbl = config.pg.aggregate_levels[level];
+	if (config.aggregates == true){
+
+		//Data route for spatio-temporal aggregates
+		app.get('/'+config.url_prefix+'/data/aggregates.json', function(req, res){
+
+					// Organise parameter options
+					if (req.param('level')){
+						var level = req.param('level');
+						var tbl = config.pg.aggregate_levels[level];
+					}
+					else{
+						// Use first aggregate level as default
+						for (var i in config.pg.aggregate_levels)break; var level = i;
+						var tbl = config.pg.aggregate_levels[level];
+					};
+
+					// Get data, refreshing cache if need
+					if (cache.get('count_'+level) == null){
+						getCountByArea({polygon_layer:tbl}, function(data){
+							cacheCount('count_'+level);
+
+							// Write data
+							res.writeHead(200, {"Content-type":"application/json"});
+							res.end(JSON.stringify(data[0], "utf8"));
+						})
+					}
+
+				else {
+					res.writeHead(200, {"Content-type":"application/json"});
+					res.end(JSON.stringify(cache.get('count_'+level)[0], "utf8"));
 				}
-				else{
-					// Use first aggregate level as default
-					for (var i in config.pg.aggregate_levels)break; var level = i;
-					var tbl = config.pg.aggregate_levels[level];
-				};
-
-				// Get data, refreshing cache if need
-				if (cache.get('count_'+level) == null){
-					getCountByArea({polygon_layer:tbl}, function(data){
-						cacheCount('count_'+level);
-
-						// Write data
-						res.writeHead(200, {"Content-type":"application/json"});
-						res.end(JSON.stringify(data[0], "utf8"));
-					})
-				}
-
-			else {
-				res.writeHead(200, {"Content-type":"application/json"});
-				res.end(JSON.stringify(cache.get('count_'+level)[0], "utf8"));
-			}
-	});
+		});
+	}
 }
 
 // 404 handling
