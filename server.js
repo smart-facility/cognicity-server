@@ -164,29 +164,35 @@ if (config.data == true){
 
 				if (cache.get('reports_unconfirmed') == null){
 					getUnConfirmedReports(opts, function(data){
-						cacheUnConfirmedReports(data);
-						res.writeHead(200, {"Content-type":"application/json"});
-						res.end(JSON.stringify(data[0], "utf8")); //get only db row.
+						cacheUnConfirmedReports(data); //Cache data
+						writeGeoJSON(res, data[0], req.param('format'));
+						//res.writeHead(200, {"Content-type":"application/json"});
+						//res.end(JSON.stringify(data[0], "utf8")); //get only db row.
 						})
 					}
 
 				else {
-					res.writeHead(200, {"Content-type":"application/json"});
-					res.end(JSON.stringify(cache.get('reports_unconfirmed')[0], "utf8"));
+					writeGeoJSON(res, cache.get('reports_unconfirmed')[0], req.param('format'));
+					//res.writeHead(200, {"Content-type":"application/json"});
+					//res.end(JSON.stringify(cache.get('reports_unconfirmed')[0], "utf8"));
 					}
 		}
 		else {
 			if (cache.get('reports') == null){
 				getReports(opts, function(data){
 					cacheReports(data);
-					res.writeHead(200, {"Content-type":"application/json"});
-					res.end(JSON.stringify(data[0], "utf8")); //get only db row.
+					writeGeoJSON(res, data[0], req.param('format'));
+					//res.writeHead(200, {"Content-type":"application/json"});
+					//res.end(JSON.stringify(data[0], "utf8")); //get only db row.
 					})
 			}
 
 		else {
-			res.writeHead(200, {"Content-type":"application/json"});
-			res.end(JSON.stringify(cache.get('reports')[0], "utf8"));
+			// Default to confirmed reports
+			writeGeoJSON(res, cache.get('reports')[0], req.param('format'));
+			//res.writeHead(200, {"Content-type":"application/json"});
+			//res.end(JSON.stringify(cache.get('reports')[0], "utf8"));
+			
 			}
 		}
 	});
@@ -233,7 +239,7 @@ function writeGeoJSON(res, data, format){
 		var output = data;
 	}
 	res.writeHead(200, {"Content-type":"application/json"});
-	res.end(JSON.stringify(output));
+	res.end(JSON.stringify(output, "utf8"));
 }
 
 // 404 handling
