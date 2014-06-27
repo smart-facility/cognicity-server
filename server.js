@@ -8,6 +8,7 @@ var http = require('http');
 var express = require('express');
 var pg = require('pg');
 var cache = require('memory-cache');
+var topojson = require('topojson');
 
 // Configuration
 if (process.argv[2]){
@@ -192,7 +193,6 @@ if (config.data == true){
 
 
 	if (config.aggregates == true){
-
 		//Data route for spatio-temporal aggregates
 		app.get('/'+config.url_prefix+'/data/aggregates.json', function(req, res){
 
@@ -206,24 +206,34 @@ if (config.data == true){
 						for (var i in config.pg.aggregate_levels)break; var level = i;
 						var tbl = config.pg.aggregate_levels[level];
 					};
-
+					
 					// Get data, refreshing cache if need
 					if (cache.get('count_'+level) == null){
 						getCountByArea({polygon_layer:tbl}, function(data){
 							cacheCount('count_'+level);
 
 							// Write data
-							res.writeHead(200, {"Content-type":"application/json"});
-							res.end(JSON.stringify(data[0], "utf8"));
+							writeGeoJSON(res, data[0], req.param('format'));
 						})
 					}
 
 				else {
-					res.writeHead(200, {"Content-type":"application/json"});
-					res.end(JSON.stringify(cache.get('count_'+level)[0], "utf8"));
+					writeGeoJson(res, data[0], req.param('format'));
 				}
 		});
 	}
+}
+
+// Function to return GeoJson or TopoJson data to stream
+function writeGeoJSON(res, data, format){
+	if (format == 'topojson'){
+		var output = topojson.topology({collection:data});
+		}
+	else{
+		var output = data;
+	}
+	res.writeHead(200, {"Content-type":"application/json"});
+	res.end(JSON.stringify(output));
 }
 
 // 404 handling
