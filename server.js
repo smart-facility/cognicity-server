@@ -166,15 +166,11 @@ if (config.data == true){
 					getUnConfirmedReports(opts, function(data){
 						cacheUnConfirmedReports(data); //Cache data
 						writeGeoJSON(res, data[0], req.param('format'));
-						//res.writeHead(200, {"Content-type":"application/json"});
-						//res.end(JSON.stringify(data[0], "utf8")); //get only db row.
 						})
 					}
 
 				else {
 					writeGeoJSON(res, cache.get('reports_unconfirmed')[0], req.param('format'));
-					//res.writeHead(200, {"Content-type":"application/json"});
-					//res.end(JSON.stringify(cache.get('reports_unconfirmed')[0], "utf8"));
 					}
 		}
 		else {
@@ -182,17 +178,12 @@ if (config.data == true){
 				getReports(opts, function(data){
 					cacheReports(data);
 					writeGeoJSON(res, data[0], req.param('format'));
-					//res.writeHead(200, {"Content-type":"application/json"});
-					//res.end(JSON.stringify(data[0], "utf8")); //get only db row.
 					})
 			}
 
 		else {
 			// Default to confirmed reports
 			writeGeoJSON(res, cache.get('reports')[0], req.param('format'));
-			//res.writeHead(200, {"Content-type":"application/json"});
-			//res.end(JSON.stringify(cache.get('reports')[0], "utf8"));
-			
 			}
 		}
 	});
