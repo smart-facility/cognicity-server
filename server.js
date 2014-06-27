@@ -45,7 +45,7 @@ app.get('/'+config.url_prefix, function(req, res){
 	res.redirect('/'+config.root_redirect);
 	});
 
-//Function for database calls
+// Function for database calls
 function dataQuery(pgcon, sql, callback){
 	pg.connect(pgcon, function(err, client, done){
 		client.query(sql, function(err, result){
@@ -87,7 +87,7 @@ function getReports(options, callback){
 		}
 	}
 
-	//SQL
+	// SQL
 	var sql = "SELECT 'FeatureCollection' As type, array_to_json(array_agg(f)) As features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT pkey, created_at at time zone 'ICT' created_at, source, text) As l)) As properties FROM "+config.pg.tbl_reports+" As lg WHERE created_at >= to_timestamp("+param.start+") AND created_at <= to_timestamp("+param.end+") ORDER BY created_at DESC LIMIT "+param.limit+")As f ;"
 
 	// Call data query
@@ -98,7 +98,7 @@ function cacheReports(data){
 	cache.put('reports', data, config.cache_timeout);
 }
 
-//Unconfirmed reports
+// Unconfirmed reports
 function getUnConfirmedReports(options, callback){
 
 	// Default parameters for this data
@@ -114,23 +114,26 @@ function getUnConfirmedReports(options, callback){
 		}
 	}
 
-	//SQL
+	// SQL
 	var sql = "SELECT 'FeatureCollection' As type, array_to_json(array_agg(f)) As features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT pkey) As l)) As properties FROM "+config.pg.tbl_reports_unconfirmed+" As lg WHERE created_at >= to_timestamp("+param.start+") AND created_at <= to_timestamp("+param.end+") ORDER BY created_at DESC LIMIT "+param.limit+")As f ;"
 	// Call data query
 	dataQuery(config.pg.conString, sql, callback)
 }
 
+// cache UnConfirmedReports
 function cacheUnConfirmedReports(data){
 	cache.put('reports_unconfirmed', data, config.cache_timeout);
 }
 
-function getCountRW(options, callback){
+// Function to count unconfirmed reports within given polygon layer (e.g. wards)
+function getCountByArea(options, callback){
 
 	// Default parameters for this data
 	var param = ({
 		start: config.pg.start,
 		end:  Math.floor(Date.now()/1000), // now
-		limit: config.pg.limit // user adjustable limit
+		point_layer: config.pg.tbl_reports_unconfirmed, // unconfirmed reports
+		polygon_layer: config.pg.tbl_polygon_0 // smallest scale polygon table
 	});
 
 	for (key in param){
@@ -138,41 +141,16 @@ function getCountRW(options, callback){
 			param[key] = options[key]
 		}
 	}
-	//Note - still needs parameterising and normalising
-	//SQL
-	var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT lg.objectid, lg.rw as level_name, COALESCE(count.count,0) count) As l)) As properties FROM batas_rw As lg LEFT OUTER JOIN (SELECT b.objectid, count(a.pkey) count FROM unconfirmed_reports a, batas_rw b WHERE ST_Within(a.the_geom, b.the_geom) GROUP BY b.objectid) as count ON (lg.objectid = count.objectid) ORDER BY count DESC) As f;"
+	// SQL
+	var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT lg.objectid, lg.area_name as level_name, COALESCE(count.count,0) count) As l)) As properties FROM "+param.polygon_layer+" As lg LEFT OUTER JOIN (SELECT b.objectid, count(a.pkey) count FROM "+param.point_layer+" a, "+param.polygon_layer+" b WHERE ST_Within(a.the_geom, b.the_geom) GROUP BY b.objectid) as count ON (lg.objectid = count.objectid) ORDER BY count DESC) As f;"
 
 	// Call data query
 	dataQuery(config.pg.conString, sql, callback)
 }
 
-function cacheCountRW(data){
-	cache.put('count_rw', data, config.cache_timeout);
-}
-
-function getCountVillage(options, callback){
-
-	// Default parameters for this data
-	var param = ({
-		start: config.pg.start,
-		end:  Math.floor(Date.now()/1000), // now
-		limit: config.pg.limit // user adjustable limit
-	});
-
-	for (key in param){
-		if (options.hasOwnProperty(key)){
-			param[key] = options[key]
-		}
-	}
-	//Note - still needs parameterising and normalising
-	//SQL
-	var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT lg.objectid, lg.kel_name as level_name, COALESCE(count.count,0) count) As l)) As properties FROM batas_village As lg LEFT OUTER JOIN (SELECT b.objectid, count(a.pkey) count FROM unconfirmed_reports a, batas_village b WHERE ST_Within(a.the_geom, b.the_geom) GROUP BY b.objectid) as count ON (lg.objectid = count.objectid) ORDER BY count DESC) As f;"
-	// Call data query
-	dataQuery(config.pg.conString, sql, callback)
-}
-
-function cacheCountVillage(data){
-	cache.put('count_village', data, config.cache_timeout);
+// Function to cache aggregates of report counts per polygon area
+function cacheCount(data, name){
+	cache.put(name, data, config.cache_timeout);
 }
 
 if (config.data == true){
@@ -215,40 +193,33 @@ if (config.data == true){
 	//Data route for spatio-temporal aggregates
 	app.get('/'+config.url_prefix+'/data/aggregates.json', function(req, res){
 
-				opts = {}
+				// Organise parameter options
+				if (req.param('level')){
+					var level = req.param('level');
+					var tbl = config.pg.aggregate_levels[level];
+				}
+				else{
+					// Use first aggregate level as default
+					for (var i in config.pg.aggregate_levels)break; var level = i;
+					var tbl = config.pg.aggregate_levels[level];
+				};
 
-				if (req.param('level') == 'rw'){
+				// Get data, refreshing cache if need
+				if (cache.get('count_'+level) == null){
+					getCountByArea({polygon_layer:tbl}, function(data){
+						cacheCount('count_'+level);
 
-					if (cache.get('count_rw') == null){
-						getCountRW(opts, function(data){
-							cacheCountRW(data);
-							res.writeHead(200, {"Content-type":"application/json"});
-							res.end(JSON.stringify(data[0], "utf8")); //get only db row.
-							})
-						}
-
-					else {
+						// Write data
 						res.writeHead(200, {"Content-type":"application/json"});
-						res.end(JSON.stringify(cache.get('count_rw')[0], "utf8"));
-						}
-					}
+						res.end(JSON.stringify(data[0], "utf8"));
+					})
+				}
 
-				else {
-						if (cache.get('count_village') == null){
-							getCountVillage(opts, function(data){
-								cacheCountVillage(data);
-								res.writeHead(200, {"Content-type":"application/json"});
-								res.end(JSON.stringify(data[0], "utf8")); //get only db row.
-								})
-							}
-
-						else {
-							res.writeHead(200, {"Content-type":"application/json"});
-							res.end(JSON.stringify(cache.get('count_village')[0], "utf8"));
-							}
-					}
+			else {
+				res.writeHead(200, {"Content-type":"application/json"});
+				res.end(JSON.stringify(cache.get('count_'+level)[0], "utf8"));
+			}
 	});
-
 }
 
 // 404 handling
