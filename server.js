@@ -142,7 +142,7 @@ function getCountByArea(options, callback){
 		}
 	}
 	// SQL
-	var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT lg.objectid, lg.area_name as level_name, COALESCE(count.count,0) count) As l)) As properties FROM "+param.polygon_layer+" As lg LEFT OUTER JOIN (SELECT b.objectid, count(a.pkey) count FROM "+param.point_layer+" a, "+param.polygon_layer+" b WHERE ST_Within(a.the_geom, b.the_geom) GROUP BY b.objectid) as count ON (lg.objectid = count.objectid) ORDER BY count DESC) As f;"
+	var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT lg.pkey, lg.area_name as level_name, COALESCE(count.count,0) count) As l)) As properties FROM "+param.polygon_layer+" As lg LEFT OUTER JOIN (SELECT b.pkey, count(a.pkey) count FROM "+param.point_layer+" a, "+param.polygon_layer+" b WHERE ST_Within(a.the_geom, b.the_geom) GROUP BY b.pkey) as count ON (lg.pkey = count.pkey) ORDER BY count DESC) As f;"
 
 	// Call data query
 	dataQuery(config.pg.conString, sql, callback)
