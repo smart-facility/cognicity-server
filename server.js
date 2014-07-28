@@ -8,6 +8,7 @@ var http = require('http');
 var express = require('express');
 var pg = require('pg');
 var cache = require('memory-cache');
+var topojson = require('topojson');
 
 // Configuration
 if (process.argv[2]){
@@ -163,36 +164,32 @@ if (config.data == true){
 
 				if (cache.get('reports_unconfirmed') == null){
 					getUnConfirmedReports(opts, function(data){
-						cacheUnConfirmedReports(data);
-						res.writeHead(200, {"Content-type":"application/json"});
-						res.end(JSON.stringify(data[0], "utf8")); //get only db row.
+						cacheUnConfirmedReports(data); //Cache data
+						writeGeoJSON(res, data[0], req.param('format'));
 						})
 					}
 
 				else {
-					res.writeHead(200, {"Content-type":"application/json"});
-					res.end(JSON.stringify(cache.get('reports_unconfirmed')[0], "utf8"));
+					writeGeoJSON(res, cache.get('reports_unconfirmed')[0], req.param('format'));
 					}
 		}
 		else {
 			if (cache.get('reports') == null){
 				getReports(opts, function(data){
 					cacheReports(data);
-					res.writeHead(200, {"Content-type":"application/json"});
-					res.end(JSON.stringify(data[0], "utf8")); //get only db row.
+					writeGeoJSON(res, data[0], req.param('format'));
 					})
 			}
 
 		else {
-			res.writeHead(200, {"Content-type":"application/json"});
-			res.end(JSON.stringify(cache.get('reports')[0], "utf8"));
+			// Default to confirmed reports
+			writeGeoJSON(res, cache.get('reports')[0], req.param('format'));
 			}
 		}
 	});
 
 
 	if (config.aggregates == true){
-
 		//Data route for spatio-temporal aggregates
 		app.get('/'+config.url_prefix+'/data/aggregates.json', function(req, res){
 
@@ -206,24 +203,43 @@ if (config.data == true){
 						for (var i in config.pg.aggregate_levels)break; var level = i;
 						var tbl = config.pg.aggregate_levels[level];
 					};
-
+					
 					// Get data, refreshing cache if need
 					if (cache.get('count_'+level) == null){
 						getCountByArea({polygon_layer:tbl}, function(data){
 							cacheCount('count_'+level);
 
 							// Write data
-							res.writeHead(200, {"Content-type":"application/json"});
-							res.end(JSON.stringify(data[0], "utf8"));
+							writeGeoJSON(res, data[0], req.param('format'));
 						})
 					}
 
 				else {
-					res.writeHead(200, {"Content-type":"application/json"});
-					res.end(JSON.stringify(cache.get('count_'+level)[0], "utf8"));
+					writeGeoJson(res, data[0], req.param('format'));
 				}
 		});
 	}
+}
+
+// Function to return GeoJson or TopoJson data to stream
+function writeGeoJSON(res, data, format){
+
+	//var output = data;
+
+	if (format === 'topojson'){
+		//Clone the object because topojson edits in place.
+		var topo = JSON.parse(JSON.stringify(data));
+		var topology = topojson.topology({collection:topo},{"property-transform":function(object){return object.properties;}});
+		
+		
+		res.writeHead(200, {"Content-type":"application/json"});
+		res.end(JSON.stringify(topology, "utf8"));
+		
+		}
+	else{
+		res.writeHead(200, {"Content-type":"application/json"});
+		res.end(JSON.stringify(data, "utf8"));
+		}
 }
 
 // 404 handling
