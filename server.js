@@ -203,7 +203,7 @@ if (config.data == true){
 						for (var i in config.pg.aggregate_levels)break; var level = i;
 						var tbl = config.pg.aggregate_levels[level];
 					};
-					
+
 					// Get data, refreshing cache if need
 					if (cache.get('count_'+level) == null){
 						getCountByArea({polygon_layer:tbl}, function(data){
@@ -215,7 +215,7 @@ if (config.data == true){
 					}
 
 				else {
-					writeGeoJson(res, data[0], req.param('format'));
+					writeGeoJson(res, cache.get('count_'+level)[0], req.param('format'));
 				}
 		});
 	}
@@ -230,11 +230,11 @@ function writeGeoJSON(res, data, format){
 		//Clone the object because topojson edits in place.
 		var topo = JSON.parse(JSON.stringify(data));
 		var topology = topojson.topology({collection:topo},{"property-transform":function(object){return object.properties;}});
-		
-		
+
+
 		res.writeHead(200, {"Content-type":"application/json"});
 		res.end(JSON.stringify(topology, "utf8"));
-		
+
 		}
 	else{
 		res.writeHead(200, {"Content-type":"application/json"});
