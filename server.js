@@ -131,7 +131,7 @@ function getCountByArea(options, callback){
 
 	// Default parameters for this data
 	var param = ({
-		start: config.pg.start,
+		start: Math.floor(Date.now()/1000 - 1800), //30 minutes ago
 		end:  Math.floor(Date.now()/1000), // now
 		point_layer: config.pg.tbl_reports_unconfirmed, // unconfirmed reports
 		polygon_layer: config.pg.tbl_polygon_0 // smallest scale polygon table
@@ -143,8 +143,7 @@ function getCountByArea(options, callback){
 		}
 	}
 	// SQL
-	var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT lg.pkey, lg.area_name as level_name, COALESCE(count.count,0) count) As l)) As properties FROM "+param.polygon_layer+" As lg LEFT OUTER JOIN (SELECT b.pkey, count(a.pkey) count FROM "+param.point_layer+" a, "+param.polygon_layer+" b WHERE ST_Within(a.the_geom, b.the_geom) GROUP BY b.pkey) as count ON (lg.pkey = count.pkey) ORDER BY count DESC) As f;"
-
+	var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT lg.pkey, lg.area_name as level_name, COALESCE(count.count,0) count) As l)) As properties FROM "+param.polygon_layer+" As lg LEFT OUTER JOIN (SELECT b.pkey, count(a.pkey) count FROM "+param.point_layer+" a, "+param.polygon_layer+" b WHERE ST_Within(a.the_geom, b.the_geom) AND a.created_at >= to_timestamp("+param.start+") AND a.created_at <= to_timestamp("+param.end+") GROUP BY b.pkey) as count ON (lg.pkey = count.pkey) ORDER BY count DESC) As f;"
 	// Call data query
 	dataQuery(config.pg.conString, sql, callback)
 }
@@ -203,11 +202,30 @@ if (config.data == true){
 						for (var i in config.pg.aggregate_levels)break; var level = i;
 						var tbl = config.pg.aggregate_levels[level];
 					};
-					
+
+					if (req.param('hours')){
+						if (req.param('hours') === 24){
+							//Get preceeding 24 houts
+							var hours = req.param('hours');
+							var timestamp = Math.floor(Date.now()/1000 - 86400);
+						}
+						else if (req.param('hours' === 1)) {
+							//Get preceeeding one hour
+							var hours = req.param('hours');
+							var timestamp = Math.floor(Date.now()/1000 - 3600);
+						}
+					}
+					else {
+							//Default to getting preceeding 30 minutes
+							var hours = 0.5;
+							var timestamp = Math.floor(Date.now()/1000 - 1800);
+					}
+
+
 					// Get data, refreshing cache if need
-					if (cache.get('count_'+level) == null){
-						getCountByArea({polygon_layer:tbl}, function(data){
-							cacheCount('count_'+level);
+					if (cache.get('count_'+level+'_'+hours) == null){
+						getCountByArea({polygon_layer:tbl,hours:hours}, function(data){
+							cacheCount('count_'+level+'_'+hours);
 
 							// Write data
 							writeGeoJSON(res, data[0], req.param('format'));
@@ -215,7 +233,7 @@ if (config.data == true){
 					}
 
 				else {
-					writeGeoJson(res, data[0], req.param('format'));
+					writeGeoJson(res, cache.get('count_'+level+'_'+hours)[0], req.param('format'));
 				}
 		});
 	}
@@ -230,11 +248,11 @@ function writeGeoJSON(res, data, format){
 		//Clone the object because topojson edits in place.
 		var topo = JSON.parse(JSON.stringify(data));
 		var topology = topojson.topology({collection:topo},{"property-transform":function(object){return object.properties;}});
-		
-		
+
+
 		res.writeHead(200, {"Content-type":"application/json"});
 		res.end(JSON.stringify(topology, "utf8"));
-		
+
 		}
 	else{
 		res.writeHead(200, {"Content-type":"application/json"});
