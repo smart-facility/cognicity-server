@@ -221,7 +221,6 @@ if (config.data == true){
 							var timestamp = Math.floor(Date.now()/1000 - 1800);
 					}
 
-
 					// Get data, refreshing cache if need
 					if (cache.get('count_'+level+'_'+hours) == null){
 						getCountByArea({polygon_layer:tbl,hours:hours}, function(data){
@@ -233,7 +232,7 @@ if (config.data == true){
 					}
 
 				else {
-					writeGeoJson(res, cache.get('count_'+level+'_'+hours)[0], req.param('format'));
+					writeGeoJSON(res, cache.get('count_'+level+'_'+hours)[0], req.param('format'));
 				}
 		});
 	}
