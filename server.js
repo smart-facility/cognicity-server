@@ -207,7 +207,7 @@ if (config.data == true){
 					// Get data, refreshing cache if need
 					if (cache.get('count_'+level) == null){
 						getCountByArea({polygon_layer:tbl}, function(data){
-							cacheCount('count_'+level);
+							cacheCount(data, 'count_'+level);
 
 							// Write data
 							writeGeoJSON(res, data[0], req.param('format'));
@@ -215,7 +215,7 @@ if (config.data == true){
 					}
 
 				else {
-					writeGeoJson(res, cache.get('count_'+level)[0], req.param('format'));
+					writeGeoJSON(res, cache.get('count_'+level)[0], req.param('format'));
 				}
 		});
 	}
