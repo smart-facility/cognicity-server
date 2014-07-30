@@ -204,12 +204,12 @@ if (config.data == true){
 					};
 
 					if (req.param('hours')){
-						if (req.param('hours') === 24){
+						if (req.param('hours') == 24){
 							//Get preceeding 24 houts
 							var hours = req.param('hours');
 							var start = Math.floor(Date.now()/1000 - 86400);
 						}
-						else if (req.param('hours' === 1)) {
+						else if (req.param('hours' == 1)) {
 							//Get preceeeding one hour
 							var hours = req.param('hours');
 							var start = Math.floor(Date.now()/1000 - 3600);
@@ -223,6 +223,7 @@ if (config.data == true){
 
 					// Get data, refreshing cache if need. Seperate cache for three time durations.
 					if (cache.get('count_'+level+'_'+hours) == null){
+						console.log(start);
 						getCountByArea({polygon_layer:tbl,start:start}, function(data){
 							cacheCount('count_'+level+'_'+hours);
 
