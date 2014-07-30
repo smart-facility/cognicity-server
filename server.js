@@ -207,23 +207,23 @@ if (config.data == true){
 						if (req.param('hours') === 24){
 							//Get preceeding 24 houts
 							var hours = req.param('hours');
-							var timestamp = Math.floor(Date.now()/1000 - 86400);
+							var start = Math.floor(Date.now()/1000 - 86400);
 						}
 						else if (req.param('hours' === 1)) {
 							//Get preceeeding one hour
 							var hours = req.param('hours');
-							var timestamp = Math.floor(Date.now()/1000 - 3600);
+							var start = Math.floor(Date.now()/1000 - 3600);
 						}
 					}
 					else {
 							//Default to getting preceeding 30 minutes
 							var hours = 0.5;
-							var timestamp = Math.floor(Date.now()/1000 - 1800);
+							var start = Math.floor(Date.now()/1000 - 1800);
 					}
 
 					// Get data, refreshing cache if need. Seperate cache for three time durations.
 					if (cache.get('count_'+level+'_'+hours) == null){
-						getCountByArea({polygon_layer:tbl,hours:hours}, function(data){
+						getCountByArea({polygon_layer:tbl,start:start}, function(data){
 							cacheCount('count_'+level+'_'+hours);
 
 							// Write data
