@@ -221,7 +221,7 @@ if (config.data == true){
 							var timestamp = Math.floor(Date.now()/1000 - 1800);
 					}
 
-					// Get data, refreshing cache if need
+					// Get data, refreshing cache if need. Seperate cache for three time durations.
 					if (cache.get('count_'+level+'_'+hours) == null){
 						getCountByArea({polygon_layer:tbl,hours:hours}, function(data){
 							cacheCount('count_'+level+'_'+hours);
