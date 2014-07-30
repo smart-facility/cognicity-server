@@ -9,6 +9,7 @@ var express = require('express');
 var pg = require('pg');
 var cache = require('memory-cache');
 var topojson = require('topojson');
+var api = require(__dirname+'/api.json');
 
 // Configuration
 if (process.argv[2]){
@@ -154,6 +155,17 @@ function cacheCount(data, name){
 }
 
 if (config.data == true){
+
+	// Serving API information from api.json
+	app.get('/'+config.url_prefix+'/data', function(req, res){
+
+		// Write the cached file out with white spaces for readability
+		res.writeHead(200, {"Content-type":"application/json"});
+		res.end(JSON.stringify(api, "utf8", 2));
+
+	});
+
+
 	// Data route for reports
 	app.get('/'+config.url_prefix+'/data/reports.json', function(req, res){
 
