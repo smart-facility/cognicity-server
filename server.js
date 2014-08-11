@@ -238,9 +238,8 @@ if (config.data == true){
 
 					// Get data, refreshing cache if need. Seperate cache for three time durations.
 					if (cache.get('count_'+level+'_'+hours) == null){
-						console.log(start);
 						getCountByArea({polygon_layer:tbl,start:start}, function(data){
-							cacheCount('count_'+level+'_'+hours);
+							cacheCount(data, 'count_'+level+'_'+hours);
 
 							// Write data
 							writeGeoJSON(res, data[0], req.param('format'));
