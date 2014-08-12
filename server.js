@@ -77,8 +77,9 @@ function dataQuery(pgcon, sql, callback){
 function getReports(options, callback){
 
 	// Default parameters for this data
+	// Time parameters hard coded for operation
 	var param = ({
-		start: config.pg.start,
+		start: Math.floor(Date.now()/1000 - 3600), //60 minutes ago.
 		end:  Math.floor(Date.now()/1000), // now
 		limit: config.pg.limit // user adjustable limit
 	});
@@ -105,9 +106,9 @@ function getUnConfirmedReports(options, callback){
 
 	// Default parameters for this data
 	var param = ({
-		start: config.pg.start,
-		end:  Math.floor(Date.now()/1000), // now
-		limit: config.pg.uc_limit // user adjustable limit
+		start: Math.floor(Date.now()/1000 - 1800), //30 minutes ago.
+		end:  Math.floor(Date.now()/1000), //now
+		limit: config.pg.uc_limit //user adjustable limit
 	});
 
 	for (key in param){
@@ -168,7 +169,7 @@ if (config.data == true){
 
 	// Data route for reports
 	app.get('/'+config.url_prefix+'/data/reports.json', function(req, res){
-
+		//No options from request passed to internal functions, default data parameters only.
 		opts = {}
 
 		if (req.param('type') == 'unconfirmed'){
