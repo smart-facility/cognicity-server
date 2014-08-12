@@ -256,10 +256,7 @@ if (config.data == true){
 
 // Function to return GeoJson or TopoJson data to stream
 function writeGeoJSON(res, data, format){
-
-	//var output = data;
-
-	if (format === 'topojson'){
+	if (format === 'topojson' && data.features != null){
 		//Clone the object because topojson edits in place.
 		var topo = JSON.parse(JSON.stringify(data));
 		var topology = topojson.topology({collection:topo},{"property-transform":function(object){return object.properties;}});
