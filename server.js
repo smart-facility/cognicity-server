@@ -133,7 +133,7 @@ function getCountByArea(options, callback){
 
 	// Default parameters for this data
 	var param = ({
-		start: Math.floor(Date.now()/1000 - 1800), //30 minutes ago
+		start: Math.floor(Date.now()/1000 - 3600), //60 minutes ago
 		end:  Math.floor(Date.now()/1000), // now
 		point_layer: config.pg.tbl_reports_unconfirmed, // unconfirmed reports
 		polygon_layer: config.pg.tbl_polygon_0 // smallest scale polygon table
@@ -146,6 +146,7 @@ function getCountByArea(options, callback){
 	}
 	// SQL
 	var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT lg.pkey, lg.area_name as level_name, COALESCE(count.count,0) count) As l)) As properties FROM "+param.polygon_layer+" As lg LEFT OUTER JOIN (SELECT b.pkey, count(a.pkey) count FROM "+param.point_layer+" a, "+param.polygon_layer+" b WHERE ST_Within(a.the_geom, b.the_geom) AND a.created_at >= to_timestamp("+param.start+") AND a.created_at <= to_timestamp("+param.end+") GROUP BY b.pkey) as count ON (lg.pkey = count.pkey) ORDER BY count DESC) As f;"
+
 	// Call data query
 	dataQuery(config.pg.conString, sql, callback)
 }
@@ -230,7 +231,7 @@ if (config.data == true){
 						var hours = 1;
 						var start = Math.floor(Date.now()/1000 - 3600);
 					}
-					// Get data from db and update cache. 
+					// Get data from db and update cache.
 					if (cache.get('count_'+level+'_'+hours) == null){
 						getCountByArea({polygon_layer:tbl,start:start}, function(data){
 							cacheCount(data, 'count_'+level+'_'+hours);
