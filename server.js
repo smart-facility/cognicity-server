@@ -215,29 +215,22 @@ if (config.data == true){
 						for (var i in config.pg.aggregate_levels)break; var level = i;
 						var tbl = config.pg.aggregate_levels[level];
 					};
-					if (req.param('hours')){
-						if (req.param('hours') == 24){
-							//Get preceeding 24 houts
-							var hours = req.param('hours');
-							var start = Math.floor(Date.now()/1000 - 86400);
-						}
-						else if (req.param('hours') == 1) {
-							//Get preceeeding one hour
-							var hours = req.param('hours');
-							var start = Math.floor(Date.now()/1000 - 3600);
-						}
-						else {
-							var hours = 0.5;
-							var start = Math.floor(Date.now()/1000 - 1800);
-						}
+					//3 hours
+					if (req.param('hours') && req.param('hours') == 3){
+						var hours = req.param('hours');
+						var start = Math.floor(Date.now()/1000 - 10800);
 					}
-					// Default response
+					//6 hours
+					else if (req.param('hours') && req.param('hours') == 6){
+						var hours = req.param('hours');
+						var start = Math.floor(Date.now()/1000 - 21600);
+					}
+					//Default to one hour
 					else {
-						var hours = 0.5;
-						var start = Math.floor(Date.now()/1000 - 1800);
+						var hours = 1;
+						var start = Math.floor(Date.now()/1000 - 3600);
 					}
-
-					// Get data, refreshing cache if need. Seperate cache for three time durations.
+					// Get data from db and update cache. 
 					if (cache.get('count_'+level+'_'+hours) == null){
 						getCountByArea({polygon_layer:tbl,start:start}, function(data){
 							cacheCount(data, 'count_'+level+'_'+hours);
@@ -248,6 +241,7 @@ if (config.data == true){
 					}
 
 				else {
+					//Return cached data
 					writeGeoJSON(res, cache.get('count_'+level+'_'+hours)[0], req.param('format'));
 				}
 		});
