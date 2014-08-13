@@ -135,7 +135,8 @@ function getCountByArea(options, callback){
 	var param = ({
 		start: Math.floor(Date.now()/1000 - 3600), //60 minutes ago
 		end:  Math.floor(Date.now()/1000), // now
-		point_layer: config.pg.tbl_reports_unconfirmed, // unconfirmed reports
+		point_layer_uc: config.pg.tbl_reports_unconfirmed, // unconfirmed reports
+		point_layer: config.pg.tbl_reports, //confirmed reports
 		polygon_layer: config.pg.tbl_polygon_0 // smallest scale polygon table
 	});
 
@@ -145,7 +146,8 @@ function getCountByArea(options, callback){
 		}
 	}
 	// SQL
-	var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT lg.pkey, lg.area_name as level_name, COALESCE(count.count,0) count) As l)) As properties FROM "+param.polygon_layer+" As lg LEFT OUTER JOIN (SELECT b.pkey, count(a.pkey) count FROM "+param.point_layer+" a, "+param.polygon_layer+" b WHERE ST_Within(a.the_geom, b.the_geom) AND a.created_at >= to_timestamp("+param.start+") AND a.created_at <= to_timestamp("+param.end+") GROUP BY b.pkey) as count ON (lg.pkey = count.pkey) ORDER BY count DESC) As f;"
+var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' AS type, ST_AsGeoJSON(lg.the_geom)::json As geometry,  row_to_json((SELECT l FROM (SELECT lg.pkey, lg.area_name as level_name, lg.sum_count as count) AS l)) AS properties  FROM (SELECT c1.pkey, c1.area_name, c1.the_geom, c1.count+c2.count sum_count  FROM (SELECT p1.pkey, p1.area_name, p1.the_geom, COALESCE(count.count,0) count  FROM "+param.polygon_layer+" AS p1 LEFT OUTER JOIN(SELECT b.pkey, count(a.pkey)  FROM "+param.point_layer_uc+" a, "+param.polygon_layer+" b WHERE ST_WITHIN(a.the_geom, b.the_geom) AND a.created_at >=to_timestamp("+param.start+") AND a.created_at <= to_timestamp("+param.end+") GROUP BY b.pkey) as count ON (p1.pkey = count.pkey)) as c1, ( SELECT p1.pkey, COALESCE(count.count,0) count  FROM "+param.polygon_layer+" AS p1 LEFT OUTER JOIN(SELECT b.pkey, count(a.pkey)  FROM "+param.point_layer+" a, "+param.polygon_layer+" b WHERE ST_WITHIN(a.the_geom, b.the_geom) AND a.created_at >= to_timestamp("+param.start+") AND a.created_at <= to_timestamp("+param.end+") GROUP BY b.pkey) as count ON (p1.pkey = count.pkey)) as c2 WHERE c1.pkey=c2.pkey ORDER BY pkey) AS lg) AS f;"
+
 
 	// Call data query
 	dataQuery(config.pg.conString, sql, callback)
