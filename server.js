@@ -208,7 +208,7 @@ if (config.data == true){
 		app.get('/'+config.url_prefix+'/data/aggregates.json', function(req, res){
 
 					//Organise parameter options
-					if (req.param('level') && config.pg.aggregate_levels[level] != undefined){
+					if (req.param('level') && config.pg.aggregate_levels[req.param('level')] != undefined){
 						var level = req.param('level');
 						var tbl = config.pg.aggregate_levels[level];
 					}
