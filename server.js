@@ -208,13 +208,13 @@ if (config.data == true){
 		//Data route for spatio-temporal aggregates
 		app.get('/'+config.url_prefix+'/data/aggregates.json', function(req, res){
 
-					// Organise parameter options
-					if (req.param('level')){
+					//Organise parameter options
+					if (req.param('level') && config.pg.aggregate_levels[level] != undefined){
 						var level = req.param('level');
 						var tbl = config.pg.aggregate_levels[level];
 					}
 					else{
-						// Use first aggregate level as default
+						//Use first aggregate level as default
 						for (var i in config.pg.aggregate_levels)break; var level = i;
 						var tbl = config.pg.aggregate_levels[level];
 					};
