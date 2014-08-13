@@ -5,7 +5,7 @@
       "methods": [
         {
           "MethodName": "reports",
-          "Synopsis": "Get a listing of flood tweet reports and their point geometry location",
+          "Synopsis": "Get flood reports from the last hour in point form",
           "HTTPMethod": "GET",
           "URI": "http://petajakarta.org/banjir/data/reports.json",
           "RequiresOAuth": "N",
@@ -20,7 +20,7 @@
             },
             {
               "Name": "format",
-              "Description": "Defines the format of the requested reports data as either geojson (default) or topojson. Not required but if unspecified will default to geojson.",
+              "Description": "Defines the format of the requested reports data as either geojson (default) or topojson. If unspecified will default to geojson.",
               "Required": "N",
               "Default": "geojson",
               "Type": "enumerated",
@@ -30,30 +30,30 @@
         },
         {
           "MethodName": "aggregates",
-          "Synopsis": "Get counts of flood tweet reports over time by discrete area (e.g. number of reports for one day per country)",
+          "Synopsis": "Get the number of flood reports per area",
           "HTTPMethod": "GET",
           "URI": "http://petajakarta.org/banjir/data/aggregates.json",
           "RequiresOAuth": "N",
           "parameters": [
             {
               "Name": "level",
-              "Description": "Specifies the level of aggregation (scale of discrete area) for report counts (e.g. country, state, city etc.). Not required but if unspecified defaults to Jakarta \"village\" level.",
+              "Description": "Specifies area for the counts (e.g. country, state, city etc.). If unspecified defaults to Jakarta \"village\" level.",
               "Required": "N",
               "Default": "village",
               "Type": "enumerated",
-              "EnumeratedList": "[\"village\",\"rw\"]"
+              "EnumeratedList": "[\"subdistrict\",\"village\",\"rw\"]"
             },
             {
               "Name": "hours",
-              "Description": "Specifies the timescale by number of hours of the aggregation (e.g. 1 hour, 24 hours etc.). Not required but if unspecified defaults to past 30 minutes.",
+              "Description": "Specifies the duration of the count, hours={1|3|6}. If unspecified defaults to past 1 hour.",
               "Required": "N",
-              "Default": "0.5",
+              "Default": "1",
               "Type": "enumerated",
               "EnumeratedList": "[\"0.5\",\"1\",\"24\"]"
             },
             {
               "Name": "format",
-              "Description": "Defines the format of the requested aggregates data as either geojson (default) or topojson. Not required but if unspecified will default to geojson.",
+              "Description": "Defines the format of the requested aggregates data as either geojson (default) or topojson. If unspecified will default to geojson.",
               "Required": "N",
               "Default": "geojson",
               "Type": "enumerated",
