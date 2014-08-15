@@ -294,8 +294,30 @@ if (config.data == true){
 	});
 
 	//Data route for pump stations
-
-	//Data route for flood gates
+	app.get('/'+config.url_prefix+'/data/api/v1/infrastructure/pumps', function(req, res){
+		if (cache.get('pumps') == null){
+			getInfrastructure('pumps', function(data){
+				cacheInfrastructure('pumps', data);
+				writeGeoJSON(res, data[0], req.param('format'));
+			});
+		}
+		else {
+			writeGeoJSON(res, cache.get('pumps')[0], req.param('format'));
+		}
+	});
+	
+	//Data route for floodgates
+	app.get('/'+config.url_prefix+'/data/api/v1/infrastructure/floodgates', function(req, res){
+		if (cache.get('floodgates') == null){
+			getInfrastructure('floodgates', function(data){
+				cacheInfrastructure('floodgates', data);
+				writeGeoJSON(res, data[0], req.param('format'));
+			});
+		}
+		else {
+			writeGeoJSON(res, cache.get('floodgates')[0], req.param('format'));
+		}
+	});
 }
 
 // Function to return GeoJson or TopoJson data to stream
