@@ -9,7 +9,7 @@ var express = require('express');
 var pg = require('pg');
 var cache = require('memory-cache');
 var topojson = require('topojson');
-var api = require(__dirname+'/api.json');
+var api = require(__dirname+'/api_v1.json');
 
 // Configuration
 if (process.argv[2]){
@@ -46,6 +46,11 @@ app.get('/', function(req, res){
 app.get('/'+config.url_prefix, function(req, res){
 	res.redirect('/'+config.root_redirect);
 	});
+
+//Route API path to API/v1
+app.get('/'+config.url_prefix+'/data/api', function(req, res){
+	res.redirect('/'+config.url_prefix+'/data/api/v1');
+});
 
 // Function for database calls
 function dataQuery(pgcon, sql, callback){
@@ -178,7 +183,7 @@ function cacheInfrastructure(name, data){
 if (config.data == true){
 
 	// Serving API information from api.json
-	app.get('/'+config.url_prefix+'/data', function(req, res){
+	app.get('/'+config.url_prefix+'/data/api/v1', function(req, res){
 
 		// Write the cached file out with white spaces for readability
 		res.writeHead(200, {"Content-type":"application/json"});
@@ -305,7 +310,7 @@ if (config.data == true){
 			writeGeoJSON(res, cache.get('pumps')[0], req.param('format'));
 		}
 	});
-	
+
 	//Data route for floodgates
 	app.get('/'+config.url_prefix+'/data/api/v1/infrastructure/floodgates', function(req, res){
 		if (cache.get('floodgates') == null){
