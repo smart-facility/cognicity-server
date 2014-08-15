@@ -177,44 +177,44 @@ if (config.data == true){
 
 	});
 
-
 	// Data route for reports
-	app.get('/'+config.url_prefix+'/data/reports.json', function(req, res){
-		//No options from request passed to internal functions, default data parameters only.
+	app.get('/'+config.url_prefix+'/data/api/v1/reports/confirmed', function(req, res){
+	//No options from request passed to internal functions, default data parameters only.
+
 		opts = {}
 
-		if (req.param('type') == 'unconfirmed'){
-
-				if (cache.get('reports_unconfirmed') == null){
-					getUnConfirmedReports(opts, function(data){
-						cacheUnConfirmedReports(data); //Cache data
-						writeGeoJSON(res, data[0], req.param('format'));
-						})
-					}
-
-				else {
-					writeGeoJSON(res, cache.get('reports_unconfirmed')[0], req.param('format'));
-					}
+		if (cache.get('reports') == null){
+			getReports(opts, function(data){
+				cacheReports(data);
+				writeGeoJSON(res, data[0], req.param('format'));
+			})
 		}
 		else {
-			if (cache.get('reports') == null){
-				getReports(opts, function(data){
-					cacheReports(data);
-					writeGeoJSON(res, data[0], req.param('format'));
-					})
-			}
-
-		else {
-			// Default to confirmed reports
 			writeGeoJSON(res, cache.get('reports')[0], req.param('format'));
 			}
-		}
-	});
+		});
 
+	//Data route for unconfirmed reports
+	app.get('/'+config.url_prefix+'/data/api/v1/reports/unconfirmed', function(req, res){
+
+			//No options passed
+			opts = {}
+
+			if (cache.get('reports_unconfirmed') == null){
+				getUnConfirmedReports(opts, function(data){
+					cacheUnConfirmedReports(data);
+					writeGeoJSON(res, data[0], req.param('format'));
+				})
+			}
+			else {
+				writeGeoJSON(res, cache.get('reports_unconfirmed')[0], req.param('format'));
+			}
+		});
 
 	if (config.aggregates == true){
+
 		//Data route for spatio-temporal aggregates
-		app.get('/'+config.url_prefix+'/data/aggregates.json', function(req, res){
+		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/live', function(req, res){
 
 					//Organise parameter options
 					if (req.param('level') && config.pg.aggregate_levels[req.param('level')] != undefined){
@@ -269,7 +269,6 @@ if (config.data == true){
 				writeGeoJSON(res, data[0], req.param('format'));
 			});
 		});
-
 	}
 }
 
