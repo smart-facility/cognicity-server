@@ -74,6 +74,11 @@ function dataQuery(pgcon, sql, callback){
 	})
 };
 
+//Cache reports
+function cacheReports(name, data){
+	cache.put(name, data, config.cache_timeout);
+}
+
 function getReports(options, callback){
 
 	// Default parameters for this data
@@ -91,14 +96,10 @@ function getReports(options, callback){
 	}
 
 	// SQL
-	var sql = "SELECT 'FeatureCollection' As type, array_to_json(array_agg(f)) As features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT pkey, created_at at time zone 'ICT' created_at, source, text) As l)) As properties FROM "+config.pg.tbl_reports+" As lg WHERE created_at >= to_timestamp("+param.start+") AND created_at <= to_timestamp("+param.end+") ORDER BY created_at DESC LIMIT "+param.limit+")As f ;"
+	var sql = "SELECT 'FeatureCollection' As type, array_to_json(array_agg(f)) As features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(lg.the_geom)::json As geometry, row_to_json((SELECT l FROM (SELECT pkey, created_at at time zone 'ICT' created_at, source, text) As l)) As properties FROM "+config.pg.tbl_reports+" As lg WHERE created_at >= to_timestamp("+param.start+") AND created_at <= to_timestamp("+param.end+") ORDER BY created_at DESC LIMIT "+param.limit+")As f ;"
 
 	// Call data query
 	dataQuery(config.pg.conString, sql, callback)
-}
-
-function cacheReports(data){
-	cache.put('reports', data, config.cache_timeout);
 }
 
 // Unconfirmed reports
@@ -118,14 +119,9 @@ function getUnConfirmedReports(options, callback){
 	}
 
 	// SQL
-	var sql = "SELECT 'FeatureCollection' As type, array_to_json(array_agg(f)) As features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT pkey) As l)) As properties FROM "+config.pg.tbl_reports_unconfirmed+" As lg WHERE created_at >= to_timestamp("+param.start+") AND created_at <= to_timestamp("+param.end+") ORDER BY created_at DESC LIMIT "+param.limit+")As f ;"
+	var sql = "SELECT 'FeatureCollection' As type, array_to_json(array_agg(f)) As features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(lg.the_geom)::json As geometry, row_to_json((SELECT l FROM (SELECT pkey) As l)) As properties FROM "+config.pg.tbl_reports_unconfirmed+" As lg WHERE created_at >= to_timestamp("+param.start+") AND created_at <= to_timestamp("+param.end+") ORDER BY created_at DESC LIMIT "+param.limit+")As f ;"
 	// Call data query
 	dataQuery(config.pg.conString, sql, callback)
-}
-
-// cache UnConfirmedReports
-function cacheUnConfirmedReports(data){
-	cache.put('reports_unconfirmed', data, config.cache_timeout);
 }
 
 // Function to count unconfirmed reports within given polygon layer (e.g. wards)
@@ -153,8 +149,30 @@ var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS fe
 }
 
 // Function to cache aggregates of report counts per polygon area
-function cacheCount(data, name){
+function cacheCount(name, data){
 	cache.put(name, data, config.cache_timeout);
+}
+
+//Sum of confirmed and unconfirmed aggregates from archive
+function getHistoricalCountByArea(end_time, callback){
+
+	var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' AS type, ST_AsGeoJSON(lg.the_geom)::json AS geometry, row_to_json((SELECT l FROM (SELECT lg.level_name, lg.sum_count, lg.start_time, lg.end_time) AS l)) AS properties FROM (SELECT a.area_name as level_name, a.the_geom, b.count+c.count sum_count, b.start_time, b.end_time FROM jkt_rw_boundary a, rw_count_reports_confirmed b, rw_count_reports_unconfirmed c WHERE b.rw_pkey = a.pkey AND b.rw_pkey = c.rw_pkey AND b.end_time = to_timestamp("+end_time+") AND c.end_time = to_timestamp("+end_time+")) AS lg) AS f;"
+
+	//Call data query
+	dataQuery(config.pg.conString, sql, callback)
+}
+
+function getInfrastructure(name, callback){
+
+	var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' AS type, ST_AsGeoJSON(lg.the_geom)::json AS geometry, row_to_json((SELECT l FROM (SELECT name) as l)) AS properties FROM "+config.pg.infrastructure_tbls[name]+" AS lg) AS f;"
+
+	//Call data query
+	dataQuery(config.pg.conString, sql, callback);
+}
+
+//Function to cache infrastructure on first call, no timeout set
+function cacheInfrastructure(name, data){
+	cache.put(name, data);
 }
 
 if (config.data == true){
@@ -168,44 +186,44 @@ if (config.data == true){
 
 	});
 
-
 	// Data route for reports
-	app.get('/'+config.url_prefix+'/data/reports.json', function(req, res){
-		//No options from request passed to internal functions, default data parameters only.
+	app.get('/'+config.url_prefix+'/data/api/v1/reports/confirmed', function(req, res){
+	//No options from request passed to internal functions, default data parameters only.
+
 		opts = {}
 
-		if (req.param('type') == 'unconfirmed'){
-
-				if (cache.get('reports_unconfirmed') == null){
-					getUnConfirmedReports(opts, function(data){
-						cacheUnConfirmedReports(data); //Cache data
-						writeGeoJSON(res, data[0], req.param('format'));
-						})
-					}
-
-				else {
-					writeGeoJSON(res, cache.get('reports_unconfirmed')[0], req.param('format'));
-					}
+		if (cache.get('reports') == null){
+			getReports(opts, function(data){
+				cacheReports('reports', data);
+				writeGeoJSON(res, data[0], req.param('format'));
+			})
 		}
 		else {
-			if (cache.get('reports') == null){
-				getReports(opts, function(data){
-					cacheReports(data);
-					writeGeoJSON(res, data[0], req.param('format'));
-					})
-			}
-
-		else {
-			// Default to confirmed reports
 			writeGeoJSON(res, cache.get('reports')[0], req.param('format'));
 			}
-		}
-	});
+		});
 
+	//Data route for unconfirmed reports
+	app.get('/'+config.url_prefix+'/data/api/v1/reports/unconfirmed', function(req, res){
+
+			//No options passed
+			opts = {}
+
+			if (cache.get('reports_unconfirmed') == null){
+				getUnConfirmedReports(opts, function(data){
+					cacheReports('reports_unconfirmed', data);
+					writeGeoJSON(res, data[0], req.param('format'));
+				})
+			}
+			else {
+				writeGeoJSON(res, cache.get('reports_unconfirmed')[0], req.param('format'));
+			}
+		});
 
 	if (config.aggregates == true){
+
 		//Data route for spatio-temporal aggregates
-		app.get('/'+config.url_prefix+'/data/aggregates.json', function(req, res){
+		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/live', function(req, res){
 
 					//Organise parameter options
 					if (req.param('level') && config.pg.aggregate_levels[req.param('level')] != undefined){
@@ -235,7 +253,7 @@ if (config.data == true){
 					// Get data from db and update cache.
 					if (cache.get('count_'+level+'_'+hours) == null){
 						getCountByArea({polygon_layer:tbl,start:start}, function(data){
-							cacheCount(data, 'count_'+level+'_'+hours);
+							cacheCount('count_'+level+'_'+hours, data);
 
 							// Write data
 							writeGeoJSON(res, data[0], req.param('format'));
@@ -247,7 +265,59 @@ if (config.data == true){
 					writeGeoJSON(res, cache.get('count_'+level+'_'+hours)[0], req.param('format'));
 				}
 		});
+
+		//Data route for historical aggregate archive
+		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/archive', function(req, res){
+			if (req.param('end_time')){
+				var end_time = req.param('end_time');
+			}
+			else {
+				var end_time = 'NULL';
+			}
+			getHistoricalCountByArea(end_time, function(data){
+				writeGeoJSON(res, data[0], req.param('format'));
+			});
+		});
 	}
+
+	//Data route for waterways infrastructure
+	app.get('/'+config.url_prefix+'/data/api/v1/infrastructure/waterways', function(req, res){
+		if (cache.get('waterways') == null){
+			getInfrastructure('waterways', function(data){
+				cacheInfrastructure('waterways', data);
+				writeGeoJSON(res, data[0], req.param('format'));
+			});
+		}
+		else {
+			writeGeoJSON(res, cache.get('waterways')[0], req.param('format'));
+		}
+	});
+
+	//Data route for pump stations
+	app.get('/'+config.url_prefix+'/data/api/v1/infrastructure/pumps', function(req, res){
+		if (cache.get('pumps') == null){
+			getInfrastructure('pumps', function(data){
+				cacheInfrastructure('pumps', data);
+				writeGeoJSON(res, data[0], req.param('format'));
+			});
+		}
+		else {
+			writeGeoJSON(res, cache.get('pumps')[0], req.param('format'));
+		}
+	});
+	
+	//Data route for floodgates
+	app.get('/'+config.url_prefix+'/data/api/v1/infrastructure/floodgates', function(req, res){
+		if (cache.get('floodgates') == null){
+			getInfrastructure('floodgates', function(data){
+				cacheInfrastructure('floodgates', data);
+				writeGeoJSON(res, data[0], req.param('format'));
+			});
+		}
+		else {
+			writeGeoJSON(res, cache.get('floodgates')[0], req.param('format'));
+		}
+	});
 }
 
 // Function to return GeoJson or TopoJson data to stream
