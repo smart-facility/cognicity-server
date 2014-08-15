@@ -74,6 +74,11 @@ function dataQuery(pgcon, sql, callback){
 	})
 };
 
+//Cache reports
+function cacheReports(data, name){
+	cache.put(name, data, config.cache_timeout);
+}
+
 function getReports(options, callback){
 
 	// Default parameters for this data
@@ -97,10 +102,6 @@ function getReports(options, callback){
 	dataQuery(config.pg.conString, sql, callback)
 }
 
-function cacheReports(data){
-	cache.put('reports', data, config.cache_timeout);
-}
-
 // Unconfirmed reports
 function getUnConfirmedReports(options, callback){
 
@@ -121,11 +122,6 @@ function getUnConfirmedReports(options, callback){
 	var sql = "SELECT 'FeatureCollection' As type, array_to_json(array_agg(f)) As features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(ST_Transform(lg.the_geom,4326))::json As geometry, row_to_json((SELECT l FROM (SELECT pkey) As l)) As properties FROM "+config.pg.tbl_reports_unconfirmed+" As lg WHERE created_at >= to_timestamp("+param.start+") AND created_at <= to_timestamp("+param.end+") ORDER BY created_at DESC LIMIT "+param.limit+")As f ;"
 	// Call data query
 	dataQuery(config.pg.conString, sql, callback)
-}
-
-// cache UnConfirmedReports
-function cacheUnConfirmedReports(data){
-	cache.put('reports_unconfirmed', data, config.cache_timeout);
 }
 
 // Function to count unconfirmed reports within given polygon layer (e.g. wards)
@@ -185,7 +181,7 @@ if (config.data == true){
 
 		if (cache.get('reports') == null){
 			getReports(opts, function(data){
-				cacheReports(data);
+				cacheReports(data, 'reports');
 				writeGeoJSON(res, data[0], req.param('format'));
 			})
 		}
@@ -202,7 +198,7 @@ if (config.data == true){
 
 			if (cache.get('reports_unconfirmed') == null){
 				getUnConfirmedReports(opts, function(data){
-					cacheUnConfirmedReports(data);
+					cacheReports(data, 'reports_unconfirmed');
 					writeGeoJSON(res, data[0], req.param('format'));
 				})
 			}
