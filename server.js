@@ -157,6 +157,15 @@ function cacheCount(data, name){
 	cache.put(name, data, config.cache_timeout);
 }
 
+//Sum of confirmed and unconfirmed aggregates from archive
+function getHistoricalCountByArea(end_time, callback){
+
+	var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' AS type, ST_AsGeoJSON(lg.the_geom)::json AS geometry, row_to_json((SELECT l FROM (SELECT lg.level_name, lg.sum_count, lg.start_time, lg.end_time) AS l)) AS properties FROM (SELECT a.area_name as level_name, a.the_geom, b.count+c.count sum_count, b.start_time, b.end_time FROM jkt_rw_boundary a, rw_count_reports_confirmed b, rw_count_reports_unconfirmed c WHERE b.rw_pkey = a.pkey AND b.rw_pkey = c.rw_pkey AND b.end_time = to_timestamp("+end_time+") AND c.end_time = to_timestamp("+end_time+")) AS lg) AS f;"
+
+	//Call data query
+	dataQuery(config.pg.conString, sql, callback)
+}
+
 if (config.data == true){
 
 	// Serving API information from api.json
@@ -247,6 +256,20 @@ if (config.data == true){
 					writeGeoJSON(res, cache.get('count_'+level+'_'+hours)[0], req.param('format'));
 				}
 		});
+
+		//Data route for historical aggregate archive
+		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/archive', function(req, res){
+			if (req.param('end_time')){
+				var end_time = req.param('end_time');
+			}
+			else {
+				var end_time = 'NULL';
+			}
+			getHistoricalCountByArea(end_time, function(data){
+				writeGeoJSON(res, data[0], req.param('format'));
+			});
+		});
+
 	}
 }
 
