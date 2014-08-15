@@ -75,7 +75,7 @@ function dataQuery(pgcon, sql, callback){
 };
 
 //Cache reports
-function cacheReports(data, name){
+function cacheReports(name, data){
 	cache.put(name, data, config.cache_timeout);
 }
 
@@ -149,7 +149,7 @@ var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS fe
 }
 
 // Function to cache aggregates of report counts per polygon area
-function cacheCount(data, name){
+function cacheCount(name, data){
 	cache.put(name, data, config.cache_timeout);
 }
 
@@ -160,6 +160,19 @@ function getHistoricalCountByArea(end_time, callback){
 
 	//Call data query
 	dataQuery(config.pg.conString, sql, callback)
+}
+
+function getInfrastructure(name, callback){
+
+	var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' AS type, ST_AsGeoJSON(lg.the_geom)::json AS geometry, row_to_json((SELECT l FROM (SELECT name) as l)) AS properties FROM "+config.pg.infrastructure_tbls[name]+" AS lg) AS f;"
+
+	//Call data query
+	dataQuery(config.pg.conString, sql, callback);
+}
+
+//Function to cache infrastructure on first call, no timeout set
+function cacheInfrastructure(name, data){
+	cache.put(name, data);
 }
 
 if (config.data == true){
@@ -181,7 +194,7 @@ if (config.data == true){
 
 		if (cache.get('reports') == null){
 			getReports(opts, function(data){
-				cacheReports(data, 'reports');
+				cacheReports('reports', data);
 				writeGeoJSON(res, data[0], req.param('format'));
 			})
 		}
@@ -198,7 +211,7 @@ if (config.data == true){
 
 			if (cache.get('reports_unconfirmed') == null){
 				getUnConfirmedReports(opts, function(data){
-					cacheReports(data, 'reports_unconfirmed');
+					cacheReports('reports_unconfirmed', data);
 					writeGeoJSON(res, data[0], req.param('format'));
 				})
 			}
@@ -240,7 +253,7 @@ if (config.data == true){
 					// Get data from db and update cache.
 					if (cache.get('count_'+level+'_'+hours) == null){
 						getCountByArea({polygon_layer:tbl,start:start}, function(data){
-							cacheCount(data, 'count_'+level+'_'+hours);
+							cacheCount('count_'+level+'_'+hours, data);
 
 							// Write data
 							writeGeoJSON(res, data[0], req.param('format'));
@@ -266,6 +279,23 @@ if (config.data == true){
 			});
 		});
 	}
+
+	//Data route for waterways infrastructure
+	app.get('/'+config.url_prefix+'/data/api/v1/infrastructure/waterways', function(req, res){
+		if (cache.get('waterways') == null){
+			getInfrastructure('waterways', function(data){
+				cacheInfrastructure('waterways', data);
+				writeGeoJSON(res, data[0], req.param('format'));
+			});
+		}
+		else {
+			writeGeoJSON(res, cache.get('waterways')[0], req.param('format'));
+		}
+	});
+
+	//Data route for pump stations
+
+	//Data route for flood gates
 }
 
 // Function to return GeoJson or TopoJson data to stream
