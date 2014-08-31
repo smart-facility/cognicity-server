@@ -9,7 +9,6 @@ var express = require('express');
 var pg = require('pg');
 var cache = require('memory-cache');
 var topojson = require('topojson');
-var api = require(__dirname+'/api_v1.json');
 
 // Configuration
 if (process.argv[2]){
@@ -47,9 +46,19 @@ app.get('/'+config.url_prefix, function(req, res){
 	res.redirect('/'+config.root_redirect);
 	});
 
-//Route API path to API/v1
+//Route empty API path to docs
 app.get('/'+config.url_prefix+'/data/api', function(req, res){
-	res.redirect('/'+config.url_prefix+'/data/api/v1');
+	res.redirect('/'+config.url_prefix+'/in/data/api');
+});
+
+//Route empty API path to docs
+app.get('/'+config.url_prefix+'/data/api/v1', function(req, res){
+	res.redirect('/'+config.url_prefix+'/in/data/api');
+});
+
+//Route data path to docs
+app.get('/'+config.url_prefix+'/data/', function(req, res){
+	res.redirect('/'+config.url_prefix+'/in/data/');
 });
 
 // Function for database calls
@@ -181,15 +190,6 @@ function cacheInfrastructure(name, data){
 }
 
 if (config.data == true){
-
-	// Serving API information from api.json
-	app.get('/'+config.url_prefix+'/data/api/v1', function(req, res){
-
-		// Write the cached file out with white spaces for readability
-		res.writeHead(200, {"Content-type":"application/json"});
-		res.end(JSON.stringify(api, "utf8", 2));
-
-	});
 
 	// Data route for reports
 	app.get('/'+config.url_prefix+'/data/api/v1/reports/confirmed', function(req, res){

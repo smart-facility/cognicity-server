@@ -43,7 +43,7 @@
       "methods": [
         {
           "MethodName": "live",
-          "Synopsis": "Get a real-time count of flood reports from the past hout",
+          "Synopsis": "Get a real-time count of flood reports from the past hour",
           "HTTPMethod": "GET",
           "URI": "http://petajakarta.org/banjir/data/api/v1/aggregates/live",
           "RequiresOAuth": "N",
