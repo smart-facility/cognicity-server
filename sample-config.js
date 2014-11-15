@@ -26,7 +26,7 @@ config.aggregates = true; // Enable aggregate data outputs
 //Postgres database connection
 config.pg = {};
 config.pg.conString = 'postgres://postgres:password@localhost:5432/cognicity'
-config.pg.tbl_reports = 'reports';
+config.pg.tbl_reports = 'tweet_reports';
 config.pg.tbl_reports_unconfirmed = 'tweet_reports_unconfirmed';
 
 //Optional support for report aggregation, required if config.data.aggregates set to true.
