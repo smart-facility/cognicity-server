@@ -313,6 +313,7 @@ if (config.data == true){
 					else if (req.param('hours') && req.param('hours') == 24){
 						var hours = 24;
 						var start = Math.floor(Date.now()/1000 - 86400);
+					}
 					//Default to one hour
 					else {
 						var hours = 1;
