@@ -138,6 +138,27 @@ function getUnConfirmedReports(options, callback){
 	dataQuery(config.pg.conString, sql, callback)
 }
 
+//Function to count number of reports
+function getReportsCount(options, callback){
+	var param = ({
+		start: Math.floor(Date.now()/1000 - 3600), //60 minutes ago
+		end:  Math.floor(Date.now()/1000), // now
+		point_layer_uc: config.pg.tbl_reports_unconfirmed, // unconfirmed reports
+		point_layer: config.pg.tbl_reports //confirmed reports
+	});
+
+	for (key in param){
+		if (options.hasOwnProperty(key)){
+			param[key] = options[key]
+		}
+	}
+
+	var sql = "SELECT row_to_json(row) FROM (SELECT (SELECT count(pkey) FROM "+param.point_layer_uc+" WHERE created_at >= to_timestamp("+param.start+") AND created_at <= to_timestamp("+param.end+")) as uc_count, (SELECT count(pkey) FROM "+param.point_layer+" WHERE created_at >= to_timestamp("+param.start+") AND created_at <= to_timestamp("+param.end+")) as c_count) as row;";
+
+	dataQuery(config.pg.conString, sql, callback)
+
+}
+
 // Function to count unconfirmed reports within given polygon layer (e.g. wards)
 function getCountByArea(options, callback){
 
@@ -225,6 +246,44 @@ if (config.data == true){
 			}
 		});
 
+	//Data route for report counts
+	app.get('/'+config.url_prefix+'/data/api/v1/reports/count', function(req, res){
+
+			//No options passed
+			opts = {}
+
+			//3 hours
+			if (req.param('hours') && req.param('hours') == 3){
+				var hours = 3;
+				var start = Math.floor(Date.now()/1000 - 10800);
+			}
+			//6 hours
+			else if (req.param('hours') && req.param('hours') == 6){
+				var hours = 6;
+				var start = Math.floor(Date.now()/1000 - 21600);
+			}
+			//24 hours
+			else if (req.param('hours') && req.param('hours') == 24){
+				var hours = 24;
+				var start = Math.floor(Date.now()/1000 - 86400);
+			}
+			//Default to one hour
+			else {
+				var hours = 1;
+				var start = Math.floor(Date.now()/1000 - 3600);
+			}
+
+			if (cache.get('reports_count_'+hours) == null){
+				getReportsCount({hours:hours}, function(data){
+					cacheReports('reports_count_'+hours, data);
+					writeGeoJSON(res, data[0], req.param('format'));
+				})
+			}
+			else {
+				writeGeoJSON(res, cache.get('reports_count_'+hours)[0], req.param('format'));
+			}
+		});
+
 	if (config.aggregates == true){
 
 		//Data route for spatio-temporal aggregates
@@ -250,6 +309,10 @@ if (config.data == true){
 						var hours = req.param('hours');
 						var start = Math.floor(Date.now()/1000 - 21600);
 					}
+					//24 hours
+					else if (req.param('hours') && req.param('hours') == 24){
+						var hours = 24;
+						var start = Math.floor(Date.now()/1000 - 86400);
 					//Default to one hour
 					else {
 						var hours = 1;
