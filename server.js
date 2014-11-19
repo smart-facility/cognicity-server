@@ -116,7 +116,7 @@ function getUnConfirmedReports(options, callback){
 
 	// Default parameters for this data
 	var param = ({
-		start: Math.floor(Date.now()/1000 - 1800), //30 minutes ago.
+		start: Math.floor(Date.now()/1000 - 3600), //60 minutes ago.
 		end:  Math.floor(Date.now()/1000), //now
 		limit: config.pg.uc_limit //user adjustable limit
 	});
