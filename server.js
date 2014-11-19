@@ -10,19 +10,14 @@ var pg = require('pg');
 var cache = require('memory-cache');
 var topojson = require('topojson');
 
-// Configuration
-if (process.argv[2]){
-	var config = require(__dirname+'/'+process.argv[2]);
-	}
-else{
-	throw new Error('No config file. Usage: node app.js config.js')
-	}
+// Read in config file
+var config = require(__dirname+'/config.js');
 
 // Express
 var app = express();
 
 // Logging
-var logfile = fs.createWriteStream(__dirname+'/'+config.instance+".log", {flags:'a'});
+var logfile = fs.createWriteStream(config.logpath+'/'+config.instance+".log", {flags:'a'});
 app.use(express.logger({stream:logfile}));
 
 // Static file server
@@ -348,4 +343,5 @@ app.use(function(req, res, next){
   res.send('Error 404 - Page not found', 404);
 });
 
-app.listen(config.port);
+// Use the PORT environment variable (e.g. from AWS Elastic Beanstalk) or use 8081 as the default port
+app.listen(process.env.PORT || 8081);
