@@ -47,4 +47,6 @@ config.pg.uc_limit = 'NULL'; // Limit number of unconfirmed reports.
 
 config.logpath = './';
 
+config.port = process.env.PORT || 8081;
+
 module.exports = config;
