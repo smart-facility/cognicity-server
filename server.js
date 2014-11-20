@@ -344,4 +344,4 @@ app.use(function(req, res, next){
 });
 
 // Use the PORT environment variable (e.g. from AWS Elastic Beanstalk) or use 8081 as the default port
-app.listen(process.env.PORT || 8081);
+app.listen(config.port);
