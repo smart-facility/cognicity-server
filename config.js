@@ -45,6 +45,6 @@ config.pg.uc_limit = 'NULL'; // Limit number of unconfirmed reports.
 //No longer used as time parameters not working in config file.
 //config.pg.start = '1391731200'; // Optional default start date for report queries in Unix time (default -1, no limit)
 
-config.logpath = '/var/log/nodejs/';
+config.logpath = './';
 
 module.exports = config;
