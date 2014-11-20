@@ -1,22 +1,20 @@
 //daemon.js - Daemon script for cognicity-server
 
+os = require("os");
+
 //Load configuration file
-if (process.argv[2] && process.argv[3]){
-	var config = require(__dirname+'/'+process.argv[2]); 
-	}
-else{
-	throw new Error('Missing parameters. Usage: node daemon.js config.js [start|stop|status]')
-	}
+var config = require(__dirname+'/config.js');
 
 //Daemon setup
 var daemon = require("daemonize2").setup({
 	main: "server.js",
 	name: config.instance,
-	pidfile: "/tmp/"+config.instance+".pid"
+	pidfile: os.tmpdir()+config.instance+".pid"
 });
 
+
 //Command line options
-switch (process.argv[3]){
+switch (process.argv[2]){
 	case "start":
 		daemon.start();
 		daemon.on("started", function(){
@@ -35,5 +33,5 @@ switch (process.argv[3]){
 			}
 		break;
 	default:
-		console.log("Usage:node daemon.js config.js [start|stop|status]");
+		console.log("Usage:node daemon.js [start|stop|status]");
 }
