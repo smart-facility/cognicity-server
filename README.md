@@ -18,12 +18,16 @@ Cognicity-server is the NodeJS server module for the CogniCity framework, respon
 * Node-Postgres version 2.0.0 or later
 * Memory-Cache version 0.0.5 or later
 
-
+#### External Node software
+* [Grunt](http://gruntjs.com)
 
 ### Installation
-Download the source code for cognicity-server from github: [http://github.com/smart-facility/cognicity-server](http://github.com/smart-facility/cognicity-server) or view the CogniCity installation documentation at [http://cognicity.info](http://cognicity.info).
-
-Install the node dependencies in package.json using NPM: `npm install`
+Download the source code for cognicity-server from github: [http://github.com/smart-facility/cognicity-server](https://github.com/smart-facility/cognicity-server) or view the CogniCity installation documentation at [http://cognicity.info](http://cognicity.info).
+To check it out using git, run `git clone --recursive git@github.com:smart-facility/cognicity-server`, which will also check out the default web site submodule [https://github.com/smart-facility/petajakarta-web](https://github.com/smart-facility/petajakart-web), which if you fork you can change to your own set of pages (refer to config.public_dir and config.url_prefix in the config.js file). If you have already cloned the repository, and want to check out the submodule, then run
+```shell
+git submodule init
+git submodule update
+```
 
 #### Platform-specific notes ####
 To build on OS X we recommend using [homebrew](http://brew.sh) to install node, npm, and required node modules as follows:
@@ -37,8 +41,15 @@ To build on Windows we recommend installing all dependencies (making sure to use
 * You need to create the *%APPDATA%\npm* folder and run cmd (and hence npm) as administrator. *%APPDATA%* is usually under *C:\Users\your_username\AppData\Remote*.
 Then you can run `npm install`.
 
+For the petajakarta-web submodule, install the node dependencies in package.json using NPM as follows
+```shell
+cd petajakarta-web
+npm install
+```
+You can then run `grunt` if you need to rebuild the build products following changes to its source.
+
 ### Configuration
-Server configuration parameters are stored in a configuration file which is parsed by server.js. See sample-config.js for an example configuration. It is possible to run multiple server instances using different configuration files so long as a unique port is assigned to each instance.
+Server configuration parameters are stored in a configuration file which is parsed by server.js. See config.js for an example configuration. It is possible to run multiple server instances using different configuration files so long as a unique port is assigned to each instance.
 
 #### Serving web content
 The `config.public_dir` parameter is the location of public HTML, CSS, JS web pages to serve.
@@ -59,12 +70,12 @@ The server is run as a background process using the Daemonize 2 library. The pro
 
 ```shell
 $ cd cognicity-server/
-$ node daemon.js sample-config.js start
+$ node daemon.js start
 project-name daemon started. PID 2953
-project-name running on port: 8080
+project-name running on port: 8081
 
 $node daemon.js sample-config.js status
-project-name running on port: 8080
+project-name running on port: 8081
 
 $node daemon.js sample-config.js stop
 project-name daemon stopped
