@@ -1,3 +1,11 @@
+'use strict';
+
+//daemon.js - Daemon script for cognicity-reports module
+
+/* jshint node:true */
+/* jshint unused:vars */ // We want to keep function parameters on callbacks like the originals
+/* jshint curly:false */ // Don't require curly brackets around one-line statements
+
 //sample-config.js - Configuration for cognicity-server
 
 var config = {};
@@ -9,7 +17,7 @@ config.port = 8080; // Must be unused on host.
 config.instance = 'project-name';
 
 // Location of HTML files to serve
-config.public_dir = '/project-name/cognicity-web/'
+config.public_dir = '/project-name/cognicity-web/';
 
 // Optional URL prefix - e.g. http://localhost/project-name/
 config.url_prefix = config.instance;
@@ -25,7 +33,7 @@ config.aggregates = true; // Enable aggregate data outputs
 
 //Postgres database connection
 config.pg = {};
-config.pg.conString = 'postgres://postgres:password@localhost:5432/cognicity'
+config.pg.conString = 'postgres://postgres:password@localhost:5432/cognicity';
 config.pg.tbl_reports = 'tweet_reports';
 config.pg.tbl_reports_unconfirmed = 'tweet_reports_unconfirmed';
 
