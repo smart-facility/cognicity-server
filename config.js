@@ -24,10 +24,10 @@ config.aggregates = true; // Enable aggregate data outputs
 config.pg = {};
 // Sample connection string using environment variables, e.g. from AWS Elastic Beanstalk.
 // Substitute variable names for constants in other environments.
-config.pg.conString = 'postgres://' + process.env.RDS_USERNAME + ':' + process.env.RDS_PASSWORD +'@' + process.env.RDS_HOSTNAME + ':' + process.env.RDS_PORT + '/' + process.env.DB_NAME;
+config.pg.conString = 'postgres://postgres:password@localhost:5432/mapjakarta';
 
 config.pg.tbl_reports = 'tweet_reports';
-config.pg.tbl_reports_unconfirmed = 'tweet_reports_unconfirmed';
+config.pg.tbl_reports_unconfirmed = 'unconfirmed_reports';
 
 //Optional support for report aggregation, required if config.data.aggregates set to true.
 config.pg.aggregate_levels = {
