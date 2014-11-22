@@ -3,7 +3,7 @@
 var config = {};
 
 // Instance name - default name for this configuration (will be server process name)
-config.instance = 'mj-server';
+config.instance = 'cognicity-server';
 
 // Location of HTML files to serve
 config.public_dir = __dirname+'/petajakarta-web/build/banjir';
@@ -15,7 +15,7 @@ config.url_prefix = 'banjir';
 config.root_redirect = 'banjir/in';
 
 // Default cache time expiry
-config.cache_timeout = 60000; // Data cache expiry (default 600000ms/10 minutes)
+config.cache_timeout = 60000; // Data cache expiry (1 minute)
 
 config.data = true; // Enable data routes
 config.aggregates = true; // Enable aggregate data outputs
@@ -42,8 +42,6 @@ config.pg.infrastructure_tbls = {
 };
 config.pg.limit = 'NULL'; // Limit number of rows returned in a query
 config.pg.uc_limit = 'NULL'; // Limit number of unconfirmed reports.
-//No longer used as time parameters not working in config file.
-//config.pg.start = '1391731200'; // Optional default start date for report queries in Unix time (default -1, no limit)
 
 config.logpath = './';
 
