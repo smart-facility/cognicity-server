@@ -11,7 +11,13 @@ var cache = require('memory-cache');
 var topojson = require('topojson');
 
 // Read in config file
-var config = require(__dirname+'/config.js');
+// Configuration
+if (process.argv[2]){
+	var config = require(__dirname+'/'+process.argv[2]);
+}
+else{
+	throw new Error('No config file. Usage: node app.js config.js')
+}
 
 // Express
 var app = express();
