@@ -97,9 +97,17 @@ app.get('/'+config.url_prefix+'/data/', function(req, res){
 // Function for database calls
 function dataQuery(pgcon, sql, callback){
 	pg.connect(pgcon, function(err, client, done){
+		if (err){
+			logger.error("dataQuery: " + sql + ", " + err);
+			done();
+			callback({"data":null});
+			return;
+		}
+		
 		client.query(sql, function(err, result){
 			if (err){
 				logger.error(sql +'\n'+ err);
+				done();
 				callback({"data":null});
 			}
 			else if (result && result.rows){
@@ -211,7 +219,17 @@ function getHistoricalCountByArea(end_time, callback){
 
 function getInfrastructure(name, callback){
 
-	var sql = "SELECT 'FeatureCollection' AS type, array_to_json(array_agg(f)) AS features FROM (SELECT 'Feature' AS type, ST_AsGeoJSON(lg.the_geom)::json AS geometry, row_to_json((SELECT l FROM (SELECT name) as l)) AS properties FROM "+config.pg.infrastructure_tbls[name]+" AS lg) AS f;";
+	var sql = "SELECT " +
+		"'FeatureCollection' AS type, " +
+		"array_to_json(array_agg(f)) AS features " +
+		"FROM (" +
+			"SELECT 'Feature' AS type, " +
+			"ST_AsGeoJSON(lg.the_geom)::json AS geometry, " +
+			"row_to_json(" +
+				"(SELECT l FROM (SELECT name) as l)" +
+			") AS properties "+
+			"FROM " + config.pg.infrastructure_tbls[name] + " AS lg" + 
+		") AS f;";
 
 	//Call data query
 	dataQuery(config.pg.conString, sql, callback);
@@ -371,15 +389,20 @@ function writeGeoJSON(res, data, format){
 		var topo = JSON.parse(JSON.stringify(data));
 		var topology = topojson.topology({collection:topo},{"property-transform":function(object){return object.properties;}});
 
-
 		res.writeHead(200, {"Content-type":"application/json"});
 		res.end(JSON.stringify(topology, "utf8"));
 
+	} else {
+		// Firefox will hang and receive the request forever if it receives a content type and 0 bytes of data
+		// In that case, data here is 'undefined', so we send nothing
+		if (data) {
+			res.writeHead(200, {"Content-type":"application/json"});
+			res.end(JSON.stringify(data, "utf8"));
+		} else {
+			res.writeHead(204);
+			res.end();
 		}
-	else{
-		res.writeHead(200, {"Content-type":"application/json"});
-		res.end(JSON.stringify(data, "utf8"));
-		}
+	}
 }
 
 // 404 handling
