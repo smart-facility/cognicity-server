@@ -7,7 +7,7 @@
   "private": true,
   "dependencies": {
     "daemonize2": "^0.4.2",
-    "express": "=3.x",
+    "express": "^3.2.6",
     "memory-cache": "^0.0.5",
     "pg": "^2.0.0",
     "topojson": "^1.6.14",

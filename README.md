@@ -17,6 +17,7 @@ Cognicity-server is the NodeJS server module for the CogniCity framework, respon
 * Node-Daemonize 2 version 0.4.2 or compatible
 * Node-Postgres version 2.0.0 or compatible
 * Memory-Cache version 0.0.5 or compatible
+* topojson version 1.6.14 or compatible
 * winston version 0.8.1 or compatible
 
 #### External Node software
