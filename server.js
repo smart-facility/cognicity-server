@@ -18,7 +18,7 @@ var topojson = require('topojson');
 /** Winston logger module */
 var logger = require('winston');
 
-//Read in config file from argument or default
+// Read in config file from argument or default
 var configFile = ( process.argv[2] ? process.argv[2] : 'config.js' );
 var config = require( __dirname + path.sep + configFile );
 
@@ -38,6 +38,16 @@ logger
 	})
 	// Console transport is no use to us when running as a daemon
 	.remove(logger.transports.Console);
+
+// Verify DB connection is up
+pg.connect(config.pg.conString, function(err, client, done){
+	if (err){
+		logger.error("DB Connection error: " + err);
+		logger.error("Fatal error: Application shutting down");
+		done();
+		exitWithStatus(1);
+	}
+});
 
 // Define a winston stream function we can plug in to express so we can
 // capture its logs along with our own
@@ -89,7 +99,7 @@ function dataQuery(pgcon, sql, callback){
 	pg.connect(pgcon, function(err, client, done){
 		client.query(sql, function(err, result){
 			if (err){
-				console.log(sql +'\n'+ err);
+				logger.error(sql +'\n'+ err);
 				callback({"data":null});
 			}
 			else if (result && result.rows){
