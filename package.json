@@ -23,7 +23,7 @@
     "node": "^0.10.16"
   },
   "scripts": {
-    "test": "npm run-script jshint && npm run-script mocha",
+    "test": "npm run-script jshint",
     "jshint": "jshint *.js",
     "mocha": "mocha test",
     "build-docs": "jsdoc -d docs *.js",
