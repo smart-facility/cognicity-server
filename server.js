@@ -18,14 +18,9 @@ var topojson = require('topojson');
 /** Winston logger module */
 var logger = require('winston');
 
-// Read in config file
-// Configuration
-if (process.argv[2]){
-	var config = require(__dirname+'/'+process.argv[2]);
-}
-else{
-	var config = require(__dirname+'/config.js');
-}
+//Read in config file from argument or default
+var configFile = ( process.argv[2] ? process.argv[2] : 'config.js' );
+var config = require( __dirname + path.sep + configFile );
 
 // Express
 var app = express();
