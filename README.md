@@ -13,10 +13,11 @@ Cognicity-server is the NodeJS server module for the CogniCity framework, respon
 * [PostgreSQL](http://www.postgresql.org) version 9.2 or later, with [PostGIS](http://postgis/) version 2.0 or later.
 
 #### Node Modules
-* Express version 3.2.6 or later
-* Node-Daemonize 2 version 0.4.2 or later
-* Node-Postgres version 2.0.0 or later
-* Memory-Cache version 0.0.5 or later
+* Express version 3.2.6 or compatible
+* Node-Daemonize 2 version 0.4.2 or compatible
+* Node-Postgres version 2.0.0 or compatible
+* Memory-Cache version 0.0.5 or compatible
+* winston version 0.8.1 or compatible
 
 #### External Node software
 * [Grunt](http://gruntjs.com)
@@ -82,7 +83,13 @@ project-name daemon stopped
 ```
 
 ### Logging
-Express logger writes to project-name.log
+Winston logger writes to `[config.instance].log`
+
+#### Logging parameters
+* level - info or debug are most useful here, debug will give you more verbose logging output
+* maxFileSize - max size (in bytes) of each log file before a new one is created
+* maxFiles - number of log files to retain
+* path - Specify a full path to the log directory. The default is the current directory which is the application's directory when launched via node.
 
 ### License
 This software is released under the GPLv3 License. See License.txt for details.

@@ -10,11 +10,13 @@
 //Tomas Holderness January 2014
 
 // Modules
-var fs = require('fs');
+var path = require('path');
 var express = require('express');
 var pg = require('pg');
 var cache = require('memory-cache');
 var topojson = require('topojson');
+/** Winston logger module */
+var logger = require('winston');
 
 // Read in config file
 // Configuration
@@ -29,8 +31,27 @@ else{
 var app = express();
 
 // Logging
-var logfile = fs.createWriteStream(config.logpath+'/'+config.instance+".log", {flags:'a'});
-app.use(express.logger({stream:logfile}));
+// Configure custom File transport to write plain text messages
+var logPath = config.logger.path + path.sep + config.instance + ".log";
+logger
+	.add(logger.transports.File, { 
+		filename: logPath, // Write to projectname.log
+		json: false, // Write in plain text, not JSON
+		maxsize: config.logger.maxFileSize, // Max size of each file
+		maxFiles: config.logger.maxFiles, // Max number of files
+		level: config.logger.level // Level of log messages
+	})
+	// Console transport is no use to us when running as a daemon
+	.remove(logger.transports.Console);
+
+// Define a winston stream function we can plug in to express so we can
+// capture its logs along with our own
+var winstonStream = {
+    write: function(message, encoding){
+    	logger.info(message.slice(0, -1));
+    }
+};
+app.use( express.logger( { stream : winstonStream } ) );
 
 // Static file server
 app.use(app.router);
@@ -362,4 +383,32 @@ app.use(function(req, res, next){
 });
 
 // Use the PORT environment variable (e.g. from AWS Elastic Beanstalk) or use 8081 as the default port
+logger.info( "Application starting, listening on port " + config.port );
 app.listen(config.port);
+
+//FIXME This is a workaround for https://github.com/flatiron/winston/issues/228
+//If we exit immediately winston does not get a chance to write the last log message.
+//So we wait a short time before exiting.
+function exitWithStatus(exitStatus) {
+	logger.info( "Exiting with status " + exitStatus );
+	setTimeout( function() {
+		process.exit(exitStatus);
+	}, 500 );
+}
+
+//Catch kill and interrupt signals and log a clean exit status
+process.on('SIGTERM', function() {
+	logger.info('SIGTERM: Application shutting down');
+	exitWithStatus(0);
+});
+process.on('SIGINT', function() {
+	logger.info('SIGINT: Application shutting down');
+	exitWithStatus(0);
+});
+
+//Catch unhandled exceptions, log, and exit with error status
+process.on('uncaughtException', function (err) {
+	logger.error('uncaughtException: ' + err.message + ", " + err.stack);
+	logger.error("Fatal error: Application shutting down");
+	exitWithStatus(1);
+});
