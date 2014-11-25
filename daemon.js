@@ -1,11 +1,5 @@
 'use strict';
 
-//daemon.js - Daemon script for cognicity-reports module
-
-/* jshint node:true */
-/* jshint unused:vars */ // We want to keep function parameters on callbacks like the originals
-/* jshint curly:false */ // Don't require curly brackets around one-line statements
-
 //daemon.js - Daemon script for cognicity-server
 
 var os = require("os");

@@ -1,12 +1,7 @@
 'use strict';
 
-//daemon.js - Daemon script for cognicity-reports module
-
-/* jshint node:true */
-/* jshint unused:vars */ // We want to keep function parameters on callbacks like the originals
-/* jshint curly:false */ // Don't require curly brackets around one-line statements
-
 //server.js - nodejs server for cognicity framework
+
 //Tomas Holderness January 2014
 
 // Modules
@@ -244,6 +239,7 @@ function getCountByArea(options, callback){
 		}
 	}
 	// SQL
+	// Note that references to tables were left unparameterized as these cannot be passed by user
 	var queryObject = {
 		text: "SELECT 'FeatureCollection' AS type, " +
 				"array_to_json(array_agg(f)) AS features " +
@@ -273,8 +269,7 @@ function getCountByArea(options, callback){
 								"count(a.pkey) " +
 							"FROM " + param.point_layer_uc + " a, " + 
 								param.polygon_layer + " b " +
-							"WHERE " +
-								"ST_WITHIN(a.the_geom, b.the_geom) AND " +
+							"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
 								"a.created_at >=to_timestamp($1) AND " +
 								"a.created_at <= to_timestamp($2) " +
 							"GROUP BY b.pkey " +
@@ -424,19 +419,18 @@ if (config.data === true){
 					}
 					else{
 						//Use first aggregate level as default
-						for (var i in config.pg.aggregate_levels)break; level = i;
-						tbl = config.pg.aggregate_levels[level];
+						tbl = config.pg.aggregate_levels[ Object.keys(config.pg.aggregate_levels)[0] ];
 					}
 					
 					var hours;
 					var start;
 					//3 hours
-					if (req.param('hours') && req.param('hours') == 3){
+					if (req.param('hours') && req.param('hours') === 3){
 						hours = req.param('hours');
 						start = Math.floor(Date.now()/1000 - 10800);
 					}
 					//6 hours
-					else if (req.param('hours') && req.param('hours') == 6){
+					else if (req.param('hours') && req.param('hours') === 6){
 						hours = req.param('hours');
 						start = Math.floor(Date.now()/1000 - 21600);
 					}
