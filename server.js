@@ -95,19 +95,19 @@ app.get('/'+config.url_prefix+'/data/', function(req, res){
 });
 
 // Function for database calls
-function dataQuery(pgcon, sql, callback){
-	logger.debug("sql:"+sql);
+function dataQuery(pgcon, queryObject, callback){
+	logger.debug("queryObject:"+JSON.stringify(queryObject));
 	pg.connect(pgcon, function(err, client, done){
 		if (err){
-			logger.error("dataQuery: " + sql + ", " + err);
+			logger.error("dataQuery: " + JSON.stringify(queryObject) + ", " + err);
 			done();
 			callback({"data":null});
 			return;
 		}
 		
-		client.query(sql, function(err, result){
+		client.query(queryObject, function(err, result){
 			if (err){
-				logger.error(sql +'\n'+ err);
+				logger.error(JSON.stringify(queryObject) +'\n'+ err);
 				done();
 				callback({"data":null});
 			}
@@ -152,25 +152,32 @@ function getReports(options, callback){
 	}
 
 	// SQL
-	var sql = "SELECT 'FeatureCollection' As type, " + 
-			"array_to_json(array_agg(f)) As features " +
-		"FROM (SELECT 'Feature' As type, " + 
-			"ST_AsGeoJSON(lg.the_geom)::json As geometry, " + 
-			"row_to_json( " + 
-				"(SELECT l FROM " +
-					"(SELECT pkey, " +
-					"created_at at time zone 'ICT' created_at, " +
-					"text) " +
-				" As l) " +
-			") As properties " +
-			"FROM " + config.pg.tbl_reports + " As lg " +
-			"WHERE created_at >= to_timestamp(" + param.start + ") AND " +
-				"created_at <= to_timestamp(" + param.end + ") " +
-			"ORDER BY created_at DESC LIMIT " + param.limit + 
-		" ) As f ;";
+	var queryObject = {
+		text: "SELECT 'FeatureCollection' As type, " + 
+				"array_to_json(array_agg(f)) As features " +
+			"FROM (SELECT 'Feature' As type, " + 
+				"ST_AsGeoJSON(lg.the_geom)::json As geometry, " + 
+				"row_to_json( " + 
+					"(SELECT l FROM " +
+						"(SELECT pkey, " +
+						"created_at at time zone 'ICT' created_at, " +
+						"text) " +
+					" As l) " +
+				") As properties " +
+				"FROM " + config.pg.tbl_reports + " As lg " +
+				"WHERE created_at >= to_timestamp($1) AND " +
+					"created_at <= to_timestamp($2) " +
+				"ORDER BY created_at DESC LIMIT $3" + 
+			" ) As f ;",
+		values: [
+            param.start,
+            param.end,
+            param.limit
+		]
+	};
 
 	// Call data query
-	dataQuery(config.pg.conString, sql, callback);
+	dataQuery(config.pg.conString, queryObject, callback);
 }
 
 // Unconfirmed reports
@@ -190,22 +197,30 @@ function getUnConfirmedReports(options, callback){
 	}
 
 	// SQL
-	var sql = "SELECT 'FeatureCollection' As type, " +
-			"array_to_json(array_agg(f)) As features " +
-		"FROM (SELECT 'Feature' As type, " +
-			"ST_AsGeoJSON(lg.the_geom)::json As geometry, " +
-			"row_to_json( " +
-				"(SELECT l FROM " +
-					"(SELECT pkey) " +
-				"As l) " +
-			") As properties " +
-			"FROM " + config.pg.tbl_reports_unconfirmed + " As lg " +
-			"WHERE created_at >= to_timestamp(" + param.start + ") AND " +
-				"created_at <= to_timestamp(" + param.end + ") " +
-			"ORDER BY created_at DESC LIMIT " + param.limit +
-		" ) As f ;";
+	var queryObject = {
+		text: "SELECT 'FeatureCollection' As type, " +
+				"array_to_json(array_agg(f)) As features " +
+			"FROM (SELECT 'Feature' As type, " +
+				"ST_AsGeoJSON(lg.the_geom)::json As geometry, " +
+				"row_to_json( " +
+					"(SELECT l FROM " +
+						"(SELECT pkey) " +
+					"As l) " +
+				") As properties " +
+				"FROM " + config.pg.tbl_reports_unconfirmed + " As lg " +
+				"WHERE created_at >= to_timestamp($1) AND " +
+					"created_at <= to_timestamp($2) " +
+				"ORDER BY created_at DESC LIMIT $3" +
+			" ) As f ;",
+		values: [
+            param.start,
+            param.end,
+            param.limit
+		]
+	};
+
 	// Call data query
-	dataQuery(config.pg.conString, sql, callback);
+	dataQuery(config.pg.conString, queryObject, callback);
 }
 
 // Function to count unconfirmed reports within given polygon layer (e.g. wards)
@@ -226,63 +241,69 @@ function getCountByArea(options, callback){
 		}
 	}
 	// SQL
-	var sql = "SELECT 'FeatureCollection' AS type, " +
-			"array_to_json(array_agg(f)) AS features " +
-		"FROM (SELECT 'Feature' AS type, " +
-			"ST_AsGeoJSON(lg.the_geom)::json As geometry," +
-			"row_to_json( " +
-				"(SELECT l FROM " +
-					"(SELECT lg.pkey, " +
-						"lg.area_name as level_name, " +
-						"lg.sum_count as count " +
-					") AS l " +
-				") " +
-			") AS properties " +
-			"FROM ( " +
-				"SELECT c1.pkey, " +
-					"c1.area_name, " +
-					"c1.the_geom, " +
-					"c1.count+c2.count sum_count " +
+	var queryObject = {
+		text: "SELECT 'FeatureCollection' AS type, " +
+				"array_to_json(array_agg(f)) AS features " +
+			"FROM (SELECT 'Feature' AS type, " +
+				"ST_AsGeoJSON(lg.the_geom)::json As geometry," +
+				"row_to_json( " +
+					"(SELECT l FROM " +
+						"(SELECT lg.pkey, " +
+							"lg.area_name as level_name, " +
+							"lg.sum_count as count " +
+						") AS l " +
+					") " +
+				") AS properties " +
 				"FROM ( " +
-					"SELECT p1.pkey, " +
-						"p1.area_name, " +
-						"p1.the_geom, " +
-						"COALESCE(count.count,0) count " +
-					"FROM " + param.polygon_layer + " AS p1 " +
-					"LEFT OUTER JOIN ( " +
-						"SELECT b.pkey, " +
-							"count(a.pkey) " +
-						"FROM " + param.point_layer_uc + " a, " + 
-							param.polygon_layer + " b " +
-						"WHERE " +
-							"ST_WITHIN(a.the_geom, b.the_geom) AND " +
-							"a.created_at >=to_timestamp("+param.start+") AND " +
-							"a.created_at <= to_timestamp("+param.end+") " +
-						"GROUP BY b.pkey " +
-					") as count " +
-					"ON (p1.pkey = count.pkey) " +
-				") as c1, ( " +
-					"SELECT p1.pkey, " +
-						"COALESCE(count.count,0) count  " +
-					"FROM " + param.polygon_layer + " AS p1 " +
-					"LEFT OUTER JOIN( " +
-						"SELECT b.pkey, " +
-							"count(a.pkey) " +
-						"FROM " + param.point_layer + " a, " + 
-							param.polygon_layer + " b " +
-						"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
-							"a.created_at >= to_timestamp("+param.start+") AND " +
-							"a.created_at <= to_timestamp("+param.end+") " +
-							"GROUP BY b.pkey) as count " +
-					"ON (p1.pkey = count.pkey) " +
-				") as c2 " +
-				"WHERE c1.pkey=c2.pkey " +
-				"ORDER BY pkey " +
-			") AS lg " +
-		") AS f;";
+					"SELECT c1.pkey, " +
+						"c1.area_name, " +
+						"c1.the_geom, " +
+						"c1.count+c2.count sum_count " +
+					"FROM ( " +
+						"SELECT p1.pkey, " +
+							"p1.area_name, " +
+							"p1.the_geom, " +
+							"COALESCE(count.count,0) count " +
+						"FROM " + param.polygon_layer + " AS p1 " +
+						"LEFT OUTER JOIN ( " +
+							"SELECT b.pkey, " +
+								"count(a.pkey) " +
+							"FROM " + param.point_layer_uc + " a, " + 
+								param.polygon_layer + " b " +
+							"WHERE " +
+								"ST_WITHIN(a.the_geom, b.the_geom) AND " +
+								"a.created_at >=to_timestamp($1) AND " +
+								"a.created_at <= to_timestamp($2) " +
+							"GROUP BY b.pkey " +
+						") as count " +
+						"ON (p1.pkey = count.pkey) " +
+					") as c1, ( " +
+						"SELECT p1.pkey, " +
+							"COALESCE(count.count,0) count  " +
+						"FROM " + param.polygon_layer + " AS p1 " +
+						"LEFT OUTER JOIN( " +
+							"SELECT b.pkey, " +
+								"count(a.pkey) " +
+							"FROM " + param.point_layer + " a, " + 
+								param.polygon_layer + " b " +
+							"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
+								"a.created_at >= to_timestamp($1) AND " +
+								"a.created_at <= to_timestamp($2) " +
+								"GROUP BY b.pkey) as count " +
+						"ON (p1.pkey = count.pkey) " +
+					") as c2 " +
+					"WHERE c1.pkey=c2.pkey " +
+					"ORDER BY pkey " +
+				") AS lg " +
+			") AS f;",
+		values: [
+		    param.start,
+		    param.end
+		]
+	};
 
 	// Call data query
-	dataQuery(config.pg.conString, sql, callback);
+	dataQuery(config.pg.conString, queryObject, callback);
 }
 
 // Function to cache aggregates of report counts per polygon area
@@ -293,48 +314,56 @@ function cacheCount(name, data){
 //Sum of confirmed and unconfirmed aggregates from archive
 function getHistoricalCountByArea(end_time, callback){
 
-	var sql = "SELECT 'FeatureCollection' AS type, " +
-			"array_to_json(array_agg(f)) AS features " +
-		"FROM (SELECT 'Feature' AS type, " +
-			"ST_AsGeoJSON(lg.the_geom)::json AS geometry, " +
-			"row_to_json( " +
-				"(SELECT l FROM " +
-					"(SELECT lg.level_name, lg.sum_count, lg.start_time, lg.end_time) AS l " +
-				") " +
-			") AS properties FROM (" +
-				"SELECT a.area_name as level_name, " +
-					"a.the_geom, " +
-					"b.count+c.count sum_count, " +
-					"b.start_time, " +
-					"b.end_time " +
-				"FROM jkt_rw_boundary a, " +
-					"rw_count_reports_confirmed b, " +
-					"rw_count_reports_unconfirmed c " +
-				"WHERE b.rw_pkey = a.pkey AND " +
-					"b.rw_pkey = c.rw_pkey AND " +
-					"b.end_time = to_timestamp(" + end_time + ") AND " +
-					"c.end_time = to_timestamp(" + end_time + ") " +
-			") AS lg " +
-		") AS f;";
+	var queryObject = {
+		text: "SELECT 'FeatureCollection' AS type, " +
+				"array_to_json(array_agg(f)) AS features " +
+			"FROM (SELECT 'Feature' AS type, " +
+				"ST_AsGeoJSON(lg.the_geom)::json AS geometry, " +
+				"row_to_json( " +
+					"(SELECT l FROM " +
+						"(SELECT lg.level_name, lg.sum_count, lg.start_time, lg.end_time) AS l " +
+					") " +
+				") AS properties FROM (" +
+					"SELECT a.area_name as level_name, " +
+						"a.the_geom, " +
+						"b.count+c.count sum_count, " +
+						"b.start_time, " +
+						"b.end_time " +
+					"FROM jkt_rw_boundary a, " +
+						"rw_count_reports_confirmed b, " +
+						"rw_count_reports_unconfirmed c " +
+					"WHERE b.rw_pkey = a.pkey AND " +
+						"b.rw_pkey = c.rw_pkey AND " +
+						"b.end_time = to_timestamp($1) AND " +
+						"c.end_time = to_timestamp($1) " +
+				") AS lg " +
+			") AS f;",
+		values: [
+		    end_time
+		]
+	};
 
 	//Call data query
-	dataQuery(config.pg.conString, sql, callback);
+	dataQuery(config.pg.conString, queryObject, callback);
 }
 
 function getInfrastructure(name, callback){
 
-	var sql = "SELECT 'FeatureCollection' AS type, " +
-			"array_to_json(array_agg(f)) AS features " +
-		"FROM (SELECT 'Feature' AS type, " +
-			"ST_AsGeoJSON(lg.the_geom)::json AS geometry, " +
-			"row_to_json( " +
-				"(SELECT l FROM (SELECT name) as l) " +
-			") AS properties " +
-			"FROM " + config.pg.infrastructure_tbls[name] + " AS lg " +
-		") AS f;";
+	var queryObject = {
+		text: "SELECT 'FeatureCollection' AS type, " +
+				"array_to_json(array_agg(f)) AS features " +
+			"FROM (SELECT 'Feature' AS type, " +
+				"ST_AsGeoJSON(lg.the_geom)::json AS geometry, " +
+				"row_to_json( " +
+					"(SELECT l FROM (SELECT name) as l) " +
+				") AS properties " +
+				"FROM " + config.pg.infrastructure_tbls[name] + " AS lg " +
+			") AS f;",
+		values: []		
+	};
 
 	//Call data query
-	dataQuery(config.pg.conString, sql, callback);
+	dataQuery(config.pg.conString, queryObject, callback);
 }
 
 //Function to cache infrastructure on first call, no timeout set
