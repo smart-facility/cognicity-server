@@ -27,7 +27,10 @@ var app = express();
 
 // Logging
 // Configure custom File transport to write plain text messages
-var logPath = config.logger.path + path.sep + config.instance + ".log";
+var logPath = ( config.logger.logDirectory ? config.logger.logDirectory : __dirname );
+logPath += path.sep;
+logPath += config.instance + ".log";
+
 logger
 	.add(logger.transports.File, { 
 		filename: logPath, // Write to projectname.log

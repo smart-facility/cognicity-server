@@ -90,7 +90,7 @@ Winston logger writes to `[config.instance].log`
 * level - info or debug are most useful here, debug will give you more verbose logging output
 * maxFileSize - max size (in bytes) of each log file before a new one is created
 * maxFiles - number of log files to retain
-* path - Specify a full path to the log directory. The default is the current directory which is the application's directory when launched via node.
+* logDirectory - Specify a full path to the log directory. If not specified, the application directory will be used.
 
 ### License
 This software is released under the GPLv3 License. See License.txt for details.

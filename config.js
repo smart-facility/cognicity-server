@@ -55,7 +55,7 @@ config.logger = {};
 config.logger.level = "debug"; // What level to log at; info, verbose or debug are most useful. Levels are (npm defaults): silly, debug, verbose, info, warn, error.
 config.logger.maxFileSize = 1024 * 1024 * 100; // Max file size in bytes of each log file; default 100MB
 config.logger.maxFiles = 10; // Max number of log files kept
-config.logger.path = '.'; // Set this to a full path to a directory - defaults to current directory for the application.
+config.logger.logDirectory = null; // Set this to a full path to a directory - if not set logs will be written to the application directory.
 
 config.port = process.env.PORT || 8081;
 
