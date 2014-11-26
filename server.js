@@ -154,7 +154,7 @@ function getReportsCount(options, callback){
 		}
 	}
 
-	var sql = "SELECT row_to_json(row) FROM (SELECT (SELECT count(pkey) FROM "+param.point_layer_uc+" WHERE created_at >= to_timestamp("+param.start+") AND created_at <= to_timestamp("+param.end+")) as uc_count, (SELECT count(pkey) FROM "+param.point_layer+" WHERE created_at >= to_timestamp("+param.start+") AND created_at <= to_timestamp("+param.end+")) as c_count) as row;";
+	var sql = "SELECT row_to_json(row) as data FROM (SELECT (SELECT count(pkey) FROM "+param.point_layer_uc+" WHERE created_at >= to_timestamp("+param.start+") AND created_at <= to_timestamp("+param.end+")) as uc_count, (SELECT count(pkey) FROM "+param.point_layer+" WHERE created_at >= to_timestamp("+param.start+") AND created_at <= to_timestamp("+param.end+")) as c_count) as row;";
 
 	dataQuery(config.pg.conString, sql, callback)
 
