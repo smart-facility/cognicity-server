@@ -160,6 +160,23 @@ function getReportsCount(options, callback){
 
 }
 
+function getReportsTimeseries(options, callback){
+	var param = ({
+		start: Math.floor(Date.now()/1000-86400), //24 hours ago
+		end: Math.floor(Date.now()/1000),
+		tbl_reports: config.pg_tbl_reports_unconfirmed
+	});
+
+	for (key in param){
+		if (options.hasOwnProperty(key)){
+			param[key] = options[key]
+		}
+	}
+
+	var sql = "SELECT array_to_json(array_agg(row_to_json(row))) FROM (SELECT c.stamp, c.count as c_count, uc.count as uc_count FROM (SELECT time.stamp, COALESCE(count.count,0) count FROM (select generate_series(to_timestamp("+param.start+"), to_timestamp("+param.end+"), '1 hours') AT TIME ZONE 'ICT' as stamp) as time LEFT OUTER JOIN (SELECT count(pkey), date_trunc('hour', created_at) AT TIME ZONE 'ICT' tweettime FROM tweet_reports_unconfirmed GROUP BY date_trunc('hour', created_at))as count ON count.tweettime = time.stamp ORDER BY time.stamp ASC) as uc, (SELECT time.stamp, COALESCE(count.count,0) count FROM (select generate_series(to_timestamp("+param.start+"), to_timestamp("+param.end+"), '1 hours') AT TIME ZONE 'ICT' as stamp) as time LEFT OUTER JOIN (SELECT count(pkey), date_trunc('hour', created_at) AT TIME ZONE 'ICT' tweettime FROM tweet_reports_unconfirmed GROUP BY date_trunc('hour', created_at))as count ON count.tweettime = time.stamp ORDER BY time.stamp ASC) as c WHERE c.stamp = uc.stamp) as row;"
+	dataQuery(config.pg.conString, sql, callback)
+}
+
 // Function to count unconfirmed reports within given polygon layer (e.g. wards)
 function getCountByArea(options, callback){
 
@@ -282,6 +299,23 @@ if (config.data == true){
 			}
 			else {
 				writeGeoJSON(res, cache.get('reports_count_'+hours)[0], req.param('format'));
+			}
+		});
+
+		//Data route for confirmed timeseries
+		app.get('/'+config.url_prefix+'/data/api/v1/reports/timeseries', function(req, res){
+
+			//No options passed
+			opts = {};
+
+			if (cache.get('timeseries') == null){
+				getReportsTimeseries(opts, function(data){
+					cacheReports('timeseries', data);
+					writeGeoJSON(res, data[0], req.param('format'));
+				})
+			}
+			else {
+				writeGeoJSON(res, cache.get('timeseries')[0], req.param('format'));
 			}
 		});
 
