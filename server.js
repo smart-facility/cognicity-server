@@ -312,7 +312,7 @@ if (config.data == true){
 				getReportsTimeseries(opts, function(data){
 					cacheReports('timeseries', data);
 					writeGeoJSON(res, data[0], req.param('format'));
-				})
+				});
 			}
 			else {
 				writeGeoJSON(res, cache.get('timeseries')[0], req.param('format'));
