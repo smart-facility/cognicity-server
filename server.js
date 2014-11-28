@@ -96,7 +96,6 @@ app.get('/'+config.url_prefix+'/data/', function(req, res){
 	res.redirect('/'+config.url_prefix+'/in/data/');
 });
 
-
 if (config.data === true){
 
 	// Data route for reports
@@ -200,23 +199,41 @@ if (config.data === true){
 
 	//Data route for waterways infrastructure
 	app.get('/'+config.url_prefix+'/data/api/v1/infrastructure/waterways', function(req, res){
-		server.getInfrastructure('waterways', function(data){
-			writeGeoJSON(res, data[0], req.param('format'));
-		});
+		if (cache.get('waterways') === null){
+			server.getInfrastructure('waterways', function(data){
+				server.cacheInfrastructure('waterways', data);
+				writeGeoJSON(res, data[0], req.param('format'));
+			});
+		}
+		else {
+			writeGeoJSON(res, cache.get('waterways')[0], req.param('format'));
+		}
 	});
 
 	//Data route for pump stations
 	app.get('/'+config.url_prefix+'/data/api/v1/infrastructure/pumps', function(req, res){
-		server.getInfrastructure('pumps', function(data){
-			writeGeoJSON(res, data[0], req.param('format'));
-		});
+		if (cache.get('pumps') === null){
+			server.getInfrastructure('pumps', function(data){
+				server.cacheInfrastructure('pumps', data);
+				writeGeoJSON(res, data[0], req.param('format'));
+			});
+		}
+		else {
+			writeGeoJSON(res, cache.get('pumps')[0], req.param('format'));
+		}
 	});
 
 	//Data route for floodgates
 	app.get('/'+config.url_prefix+'/data/api/v1/infrastructure/floodgates', function(req, res){
-		server.getInfrastructure('floodgates', function(data){
-			writeGeoJSON(res, data[0], req.param('format'));
-		});
+		if (cache.get('floodgates') === null){
+			server.getInfrastructure('floodgates', function(data){
+				server.cacheInfrastructure('floodgates', data);
+				writeGeoJSON(res, data[0], req.param('format'));
+			});
+		}
+		else {
+			writeGeoJSON(res, cache.get('floodgates')[0], req.param('format'));
+		}
 	});
 }
 

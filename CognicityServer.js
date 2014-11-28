@@ -285,32 +285,29 @@ CognicityServer.prototype = {
 	getInfrastructure: function(name, callback){
 		var self = this;
 		
-		var cachedData = self.cache.get(name);
-		if (cachedData === null){
-			var queryObject = {
-				text: "SELECT 'FeatureCollection' AS type, " +
-						"array_to_json(array_agg(f)) AS features " +
-					"FROM (SELECT 'Feature' AS type, " +
-						"ST_AsGeoJSON(lg.the_geom)::json AS geometry, " +
-						"row_to_json( " +
-							"(SELECT l FROM (SELECT name) as l) " +
-						") AS properties " +
-						"FROM " + self.config.pg.infrastructure_tbls[name] + " AS lg " +
-					") AS f;",
-				values: []		
-			};
-			
-			var cacheResponse = function(data) {
-				self.cache.put( name, data );
-				callback( data );
-			};
+		var queryObject = {
+			text: "SELECT 'FeatureCollection' AS type, " +
+					"array_to_json(array_agg(f)) AS features " +
+				"FROM (SELECT 'Feature' AS type, " +
+					"ST_AsGeoJSON(lg.the_geom)::json AS geometry, " +
+					"row_to_json( " +
+						"(SELECT l FROM (SELECT name) as l) " +
+					") AS properties " +
+					"FROM " + self.config.pg.infrastructure_tbls[name] + " AS lg " +
+				") AS f;",
+			values: []		
+		};
 
-			//Call data query
-			self.dataQuery(self.config.pg.conString, queryObject, cacheResponse);	
-		} else {
-			callback( cachedData )
-		}		
+		//Call data query
+		self.dataQuery(self.config.pg.conString, queryObject, callback);	
 	},
+	
+	//Function to cache infrastructure on first call, no timeout set
+	cacheInfrastructure: function(name, data){
+		var self = this;
+		
+		self.cache.put(name, data);
+	}
 	
 };
 
