@@ -2,20 +2,17 @@
 
 var CognicityServer = function(
 	config,
-	cache,
 	logger,
 	pg	
 	){
 	
 	this.config = config;
-	this.cache = cache;
 	this.logger = logger;
 	this.pg = pg;	
 };
 
 CognicityServer.prototype = {
 	config: null,
-	cache: null,
 	logger: null,
 	pg: null,
 	
@@ -55,13 +52,6 @@ CognicityServer.prototype = {
 				}
 			});
 		});
-	},
-	
-	//Cache reports
-	cacheReports: function(name, data){
-		var self = this;
-		
-		self.cache.put(name, data, self.config.cache_timeout);
 	},
 
 	getReports: function(options, callback){
@@ -238,13 +228,6 @@ CognicityServer.prototype = {
 		self.dataQuery(self.config.pg.conString, queryObject, callback);
 	},
 
-	// Function to cache aggregates of report counts per polygon area
-	cacheCount: function(name, data){
-		var self = this;
-		
-		self.cache.put(name, data, self.config.cache_timeout);
-	},
-
 	//Sum of confirmed and unconfirmed aggregates from archive
 	getHistoricalCountByArea: function(end_time, callback){
 		var self = this;
@@ -300,13 +283,6 @@ CognicityServer.prototype = {
 
 		//Call data query
 		self.dataQuery(self.config.pg.conString, queryObject, callback);	
-	},
-	
-	//Function to cache infrastructure on first call, no timeout set
-	cacheInfrastructure: function(name, data){
-		var self = this;
-		
-		self.cache.put(name, data);
 	}
 	
 };

@@ -48,7 +48,7 @@ pg.connect(config.pg.conString, function(err, client, done){
 	}
 });
 
-var server = new CognicityServer(config, cache, logger, pg);
+var server = new CognicityServer(config, logger, pg);
 
 // Define a winston stream function we can plug in to express so we can
 // capture its logs along with our own
@@ -106,7 +106,7 @@ if (config.data === true){
 
 		if (cache.get('reports') === null){
 			server.getReports(opts, function(data){
-				server.cacheReports('reports', data);
+				cacheReports('reports', data);
 				writeGeoJSON(res, data[0], req.param('format'));
 			});
 		}
@@ -123,7 +123,7 @@ if (config.data === true){
 
 			if (cache.get('reports_unconfirmed') === null){
 				server.getUnConfirmedReports(opts, function(data){
-					server.cacheReports('reports_unconfirmed', data);
+					cacheReports('reports_unconfirmed', data);
 					writeGeoJSON(res, data[0], req.param('format'));
 				});
 			}
@@ -169,7 +169,7 @@ if (config.data === true){
 					// Get data from db and update cache.
 					if (cache.get('count_'+level+'_'+hours) === null){
 						server.getCountByArea({polygon_layer:tbl,start:start}, function(data){
-							server.cacheCount('count_'+level+'_'+hours, data);
+							cacheCount('count_'+level+'_'+hours, data);
 
 							// Write data
 							writeGeoJSON(res, data[0], req.param('format'));
@@ -201,7 +201,7 @@ if (config.data === true){
 	app.get('/'+config.url_prefix+'/data/api/v1/infrastructure/waterways', function(req, res){
 		if (cache.get('waterways') === null){
 			server.getInfrastructure('waterways', function(data){
-				server.cacheInfrastructure('waterways', data);
+				cacheInfrastructure('waterways', data);
 				writeGeoJSON(res, data[0], req.param('format'));
 			});
 		}
@@ -214,7 +214,7 @@ if (config.data === true){
 	app.get('/'+config.url_prefix+'/data/api/v1/infrastructure/pumps', function(req, res){
 		if (cache.get('pumps') === null){
 			server.getInfrastructure('pumps', function(data){
-				server.cacheInfrastructure('pumps', data);
+				cacheInfrastructure('pumps', data);
 				writeGeoJSON(res, data[0], req.param('format'));
 			});
 		}
@@ -227,7 +227,7 @@ if (config.data === true){
 	app.get('/'+config.url_prefix+'/data/api/v1/infrastructure/floodgates', function(req, res){
 		if (cache.get('floodgates') === null){
 			server.getInfrastructure('floodgates', function(data){
-				server.cacheInfrastructure('floodgates', data);
+				cacheInfrastructure('floodgates', data);
 				writeGeoJSON(res, data[0], req.param('format'));
 			});
 		}
@@ -235,6 +235,21 @@ if (config.data === true){
 			writeGeoJSON(res, cache.get('floodgates')[0], req.param('format'));
 		}
 	});
+}
+
+//Function to cache infrastructure on first call, no timeout set
+function cacheInfrastructure(name, data){
+	cache.put(name, data);
+}
+
+// Function to cache aggregates of report counts per polygon area
+function cacheCount(name, data){
+	cache.put(name, data, config.cache_timeout);
+}
+
+//Cache reports
+function cacheReports(name, data){
+	cache.put(name, data, config.cache_timeout);
 }
 
 // 404 handling
