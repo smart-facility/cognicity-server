@@ -108,15 +108,13 @@ if (config.data === true){
 		
 	// Data route for reports
 	app.get('/'+config.url_prefix+'/data/api/v1/reports/confirmed', function(req, res){
-	// No options from request passed to internal functions, default data parameters only.
+		// No options from request passed to internal functions, default data parameters only.
 		var opts = {};
 
 		server.getReports(opts, function(data){
-			// Prepare the response data
+			// Prepare the response data, cache it, and write out the response
 			var responseData = prepareGeoJSON(res, data[0], req.param('format'));
-			// Cache the response data
 			cacheTemporarily(req.originalUrl, responseData);
-			// Write the response
 			writeResponse(res, responseData);
 		});
 	});
@@ -127,11 +125,9 @@ if (config.data === true){
 		var opts = {};
 
 		server.getUnConfirmedReports(opts, function(data){
-			// Prepare the response data
+			// Prepare the response data, cache it, and write out the response
 			var responseData = prepareGeoJSON(res, data[0], req.param('format'));
-			// Cache the response data
 			cacheTemporarily(req.originalUrl, responseData);
-			// Write the response
 			writeResponse(res, responseData);
 		});
 	});
@@ -171,11 +167,9 @@ if (config.data === true){
 			}
 			// Get data from db and update cache.
 			server.getCountByArea({polygon_layer:tbl,start:start}, function(data){
-				// Prepare the response data
+				// Prepare the response data, cache it, and write out the response
 				var responseData = prepareGeoJSON(res, data[0], req.param('format'));
-				// Cache the response data
 				cacheTemporarily(req.originalUrl, responseData);
-				// Write the response
 				writeResponse(res, responseData);
 			});
 		});
@@ -201,11 +195,9 @@ if (config.data === true){
 		var infrastructureName = req.path.split("/").slice(-1)[0];
 		// Fetch the infrastructure data from the DB
 		server.getInfrastructure(infrastructureName, function(data){
-			// Prepare the response data
+			// Prepare the response data, cache it, and write out the response
 			var responseData = prepareGeoJSON(res, data[0], req.param('format'));
-			// Cache the response data
 			cachePermanently(req.originalUrl, responseData);
-			// Write the response
 			writeResponse(res, responseData);
 		});
 	});
