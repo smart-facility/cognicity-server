@@ -98,88 +98,86 @@ app.get('/'+config.url_prefix+'/data/', function(req, res){
 
 if (config.data === true){
 
+	app.get( new RegExp('/'+config.url_prefix+'/data/api/v1/.*'), function(req, res, next){
+		// See if we've got a cache hit on the request URL
+		var cacheResponse = cache.get(req.originalUrl);
+		// Render the cached response now or let express find the next matching route
+		if (cacheResponse) writeResponse( res, cacheResponse );
+		else next();
+	});
+		
 	// Data route for reports
 	app.get('/'+config.url_prefix+'/data/api/v1/reports/confirmed', function(req, res){
-	//No options from request passed to internal functions, default data parameters only.
-
+	// No options from request passed to internal functions, default data parameters only.
 		var opts = {};
 
-		if (cache.get('reports') === null){
-			server.getReports(opts, function(data){
-				cacheReports('reports', data);
-				writeGeoJSON(res, data[0], req.param('format'));
-			});
-		}
-		else {
-			writeGeoJSON(res, cache.get('reports')[0], req.param('format'));
-			}
+		server.getReports(opts, function(data){
+			// Prepare the response data
+			var responseData = prepareGeoJSON(res, data[0], req.param('format'));
+			// Cache the response data
+			cacheTemporarily(req.originalUrl, responseData);
+			// Write the response
+			writeResponse(res, responseData);
 		});
+	});
 
-	//Data route for unconfirmed reports
+	// Data route for unconfirmed reports
 	app.get('/'+config.url_prefix+'/data/api/v1/reports/unconfirmed', function(req, res){
+		// No options passed
+		var opts = {};
 
-			//No options passed
-			var opts = {};
-
-			if (cache.get('reports_unconfirmed') === null){
-				server.getUnConfirmedReports(opts, function(data){
-					cacheReports('reports_unconfirmed', data);
-					writeGeoJSON(res, data[0], req.param('format'));
-				});
-			}
-			else {
-				writeGeoJSON(res, cache.get('reports_unconfirmed')[0], req.param('format'));
-			}
+		server.getUnConfirmedReports(opts, function(data){
+			// Prepare the response data
+			var responseData = prepareGeoJSON(res, data[0], req.param('format'));
+			// Cache the response data
+			cacheTemporarily(req.originalUrl, responseData);
+			// Write the response
+			writeResponse(res, responseData);
 		});
+	});
 
 	if (config.aggregates === true){
 
 		//Data route for spatio-temporal aggregates
 		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/live', function(req, res){
-
-					//Organise parameter options
-					var level;
-					var tbl;
-					if (req.param('level') && config.pg.aggregate_levels[req.param('level')] !== undefined){
-						level = req.param('level');
-						tbl = config.pg.aggregate_levels[level];
-					}
-					else{
-						//Use first aggregate level as default
-						tbl = config.pg.aggregate_levels[ Object.keys(config.pg.aggregate_levels)[0] ];
-					}
-					
-					var hours;
-					var start;
-					//3 hours
-					if (req.param('hours') && req.param('hours') === 3){
-						hours = req.param('hours');
-						start = Math.floor(Date.now()/1000 - 10800);
-					}
-					//6 hours
-					else if (req.param('hours') && req.param('hours') === 6){
-						hours = req.param('hours');
-						start = Math.floor(Date.now()/1000 - 21600);
-					}
-					//Default to one hour
-					else {
-						hours = 1;
-						start = Math.floor(Date.now()/1000 - 3600);
-					}
-					// Get data from db and update cache.
-					if (cache.get('count_'+level+'_'+hours) === null){
-						server.getCountByArea({polygon_layer:tbl,start:start}, function(data){
-							cacheCount('count_'+level+'_'+hours, data);
-
-							// Write data
-							writeGeoJSON(res, data[0], req.param('format'));
-						});
-					}
-
-				else {
-					//Return cached data
-					writeGeoJSON(res, cache.get('count_'+level+'_'+hours)[0], req.param('format'));
-				}
+			//Organise parameter options
+			var level;
+			var tbl;
+			if (req.param('level') && config.pg.aggregate_levels[req.param('level')] !== undefined){
+				level = req.param('level');
+				tbl = config.pg.aggregate_levels[level];
+			}
+			else{
+				//Use first aggregate level as default
+				tbl = config.pg.aggregate_levels[ Object.keys(config.pg.aggregate_levels)[0] ];
+			}
+			
+			var hours;
+			var start;
+			//3 hours
+			if (req.param('hours') && req.param('hours') === 3){
+				hours = req.param('hours');
+				start = Math.floor(Date.now()/1000 - 10800);
+			}
+			//6 hours
+			else if (req.param('hours') && req.param('hours') === 6){
+				hours = req.param('hours');
+				start = Math.floor(Date.now()/1000 - 21600);
+			}
+			//Default to one hour
+			else {
+				hours = 1;
+				start = Math.floor(Date.now()/1000 - 3600);
+			}
+			// Get data from db and update cache.
+			server.getCountByArea({polygon_layer:tbl,start:start}, function(data){
+				// Prepare the response data
+				var responseData = prepareGeoJSON(res, data[0], req.param('format'));
+				// Cache the response data
+				cacheTemporarily(req.originalUrl, responseData);
+				// Write the response
+				writeResponse(res, responseData);
+			});
 		});
 
 		//Data route for historical aggregate archive
@@ -192,64 +190,36 @@ if (config.data === true){
 				end_time = 'NULL';
 			}
 			server.getHistoricalCountByArea(end_time, function(data){
-				writeGeoJSON(res, data[0], req.param('format'));
+				var responseData = prepareGeoJSON(res, data[0], req.param('format'));
+				writeResponse(res, responseData);
 			});
 		});
 	}
 
-	//Data route for waterways infrastructure
-	app.get('/'+config.url_prefix+'/data/api/v1/infrastructure/waterways', function(req, res){
-		if (cache.get('waterways') === null){
-			server.getInfrastructure('waterways', function(data){
-				cacheInfrastructure('waterways', data);
-				writeGeoJSON(res, data[0], req.param('format'));
-			});
-		}
-		else {
-			writeGeoJSON(res, cache.get('waterways')[0], req.param('format'));
-		}
+	app.get( new RegExp('/'+config.url_prefix+'/data/api/v1/infrastructure/.*'), function(req, res){
+		// Get last segment of path - e.g. 'waterways' in '.../infrastructure/waterways'
+		var infrastructureName = req.path.split("/").slice(-1)[0];
+		// Fetch the infrastructure data from the DB
+		server.getInfrastructure(infrastructureName, function(data){
+			// Prepare the response data
+			var responseData = prepareGeoJSON(res, data[0], req.param('format'));
+			// Cache the response data
+			cachePermanently(req.originalUrl, responseData);
+			// Write the response
+			writeResponse(res, responseData);
+		});
 	});
 
-	//Data route for pump stations
-	app.get('/'+config.url_prefix+'/data/api/v1/infrastructure/pumps', function(req, res){
-		if (cache.get('pumps') === null){
-			server.getInfrastructure('pumps', function(data){
-				cacheInfrastructure('pumps', data);
-				writeGeoJSON(res, data[0], req.param('format'));
-			});
-		}
-		else {
-			writeGeoJSON(res, cache.get('pumps')[0], req.param('format'));
-		}
-	});
-
-	//Data route for floodgates
-	app.get('/'+config.url_prefix+'/data/api/v1/infrastructure/floodgates', function(req, res){
-		if (cache.get('floodgates') === null){
-			server.getInfrastructure('floodgates', function(data){
-				cacheInfrastructure('floodgates', data);
-				writeGeoJSON(res, data[0], req.param('format'));
-			});
-		}
-		else {
-			writeGeoJSON(res, cache.get('floodgates')[0], req.param('format'));
-		}
-	});
 }
 
-//Function to cache infrastructure on first call, no timeout set
-function cacheInfrastructure(name, data){
-	cache.put(name, data);
+// Store in the memory cache with no timeout
+function cachePermanently(cacheKey, data){
+	cache.put(cacheKey, data);
 }
 
-// Function to cache aggregates of report counts per polygon area
-function cacheCount(name, data){
-	cache.put(name, data, config.cache_timeout);
-}
-
-//Cache reports
-function cacheReports(name, data){
-	cache.put(name, data, config.cache_timeout);
+// Store in the memory cache with timeout
+function cacheTemporarily(cacheKey, data){
+	cache.put(cacheKey, data, config.cache_timeout);
 }
 
 // 404 handling
@@ -257,27 +227,37 @@ app.use(function(req, res, next){
   res.send('Error 404 - Page not found', 404);
 });
 
-//Function to return GeoJson or TopoJson data to stream
-function writeGeoJSON(res, data, format){
+function prepareGeoJSON(res, data, format){
+	var responseData = {};
+	
 	if (format === 'topojson' && data.features !== null){
 		//Clone the object because topojson edits in place.
 		var topo = JSON.parse(JSON.stringify(data));
 		var topology = topojson.topology({collection:topo},{"property-transform":function(object){return object.properties;}});
 
-		res.writeHead(200, {"Content-type":"application/json"});
-		res.end(JSON.stringify(topology, "utf8"));
-
+		responseData.code = 200;
+		responseData.headers = {"Content-type":"application/json"};
+		responseData.body = JSON.stringify(topology, "utf8");
 	} else {
 		// Firefox will hang and receive the request forever if it receives a content type and 0 bytes of data
 		// In that case, data here is 'undefined', so we send nothing
 		if (data) {
-			res.writeHead(200, {"Content-type":"application/json"});
-			res.end(JSON.stringify(data, "utf8"));
+			responseData.code = 200;
+			responseData.headers = {"Content-type":"application/json"};
+			responseData.body = JSON.stringify(data, "utf8");
 		} else {
-			res.writeHead(204);
-			res.end();
+			responseData.code = 204;
+			responseData.headers = {};
+			responseData.body = null;
 		}
 	}
+	
+	return responseData;
+}
+
+function writeResponse(res, responseData) {
+	res.writeHead( responseData.code, responseData.headers );
+	res.end( responseData.body );
 }
 
 // Use the PORT environment variable (e.g. from AWS Elastic Beanstalk) or use 8081 as the default port
