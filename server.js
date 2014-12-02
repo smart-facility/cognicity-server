@@ -139,32 +139,32 @@ if (config.data === true){
 			//Organise parameter options
 			var level;
 			var tbl;
-			if (req.param('level') && config.pg.aggregate_levels[req.param('level')] !== undefined){
-				level = req.param('level');
+			if (req.query.level && config.pg.aggregate_levels[req.query.level] !== undefined){
+				level = req.query.level;
 				tbl = config.pg.aggregate_levels[level];
-			}
-			else{
+			} else{
 				//Use first aggregate level as default
 				tbl = config.pg.aggregate_levels[ Object.keys(config.pg.aggregate_levels)[0] ];
 			}
+			logger.debug("Parsed option 'tbl' as '"+tbl+"'");
 			
-			var hours;
 			var start;
 			//3 hours
-			if (req.param('hours') && req.param('hours') === 3){
-				hours = req.param('hours');
+			if (req.query.hours && req.query.hours === "3"){
+				logger.debug("Parsed option 'hours' as '3'");
 				start = Math.floor(Date.now()/1000 - 10800);
 			}
 			//6 hours
-			else if (req.param('hours') && req.param('hours') === 6){
-				hours = req.param('hours');
+			else if (req.query.hours && req.query.hours === "6"){
+				logger.debug("Parsed option 'hours' as '6'");
 				start = Math.floor(Date.now()/1000 - 21600);
 			}
 			//Default to one hour
 			else {
-				hours = 1;
+				logger.debug("Parsed option 'hours' as '1'");
 				start = Math.floor(Date.now()/1000 - 3600);
 			}
+					
 			// Get data from db and update cache.
 			server.getCountByArea({polygon_layer:tbl,start:start}, function(data){
 				// Prepare the response data, cache it, and write out the response
