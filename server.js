@@ -223,9 +223,7 @@ function prepareGeoJSON(res, data, format){
 	var responseData = {};
 	
 	if (format === 'topojson' && data.features !== null){
-		//Clone the object because topojson edits in place.
-		var topo = JSON.parse(JSON.stringify(data));
-		var topology = topojson.topology({collection:topo},{"property-transform":function(object){return object.properties;}});
+		var topology = topojson.topology({collection:data},{"property-transform":function(object){return object.properties;}});
 
 		responseData.code = 200;
 		responseData.headers = {"Content-type":"application/json"};
