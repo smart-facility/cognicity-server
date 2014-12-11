@@ -109,9 +109,7 @@ if (config.data === true){
 	// Data route for reports
 	app.get('/'+config.url_prefix+'/data/api/v1/reports/confirmed', function(req, res){
 		// No options from request passed to internal functions, default data parameters only.
-		var opts = {};
-
-		server.getReports(opts, function(data){
+		server.getReports({}, function(data){
 			// Prepare the response data, cache it, and write out the response
 			var responseData = prepareGeoJSON(res, data[0], req.param('format'));
 			cacheTemporarily(req.originalUrl, responseData);
@@ -122,9 +120,7 @@ if (config.data === true){
 	// Data route for unconfirmed reports
 	app.get('/'+config.url_prefix+'/data/api/v1/reports/unconfirmed', function(req, res){
 		// No options passed
-		var opts = {};
-
-		server.getUnConfirmedReports(opts, function(data){
+		server.getUnConfirmedReports({}, function(data){
 			// Prepare the response data, cache it, and write out the response
 			var responseData = prepareGeoJSON(res, data[0], req.param('format'));
 			cacheTemporarily(req.originalUrl, responseData);
@@ -134,32 +130,30 @@ if (config.data === true){
 
 	if (config.aggregates === true){
 
-		//Data route for spatio-temporal aggregates
+		// Data route for spatio-temporal aggregates
 		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/live', function(req, res){
 			//Organise parameter options
-			var level;
 			var tbl;
-			if (req.query.level && config.pg.aggregate_levels[req.query.level] !== undefined){
-				level = req.query.level;
-				tbl = config.pg.aggregate_levels[level];
+			if (req.query.level && config.pg.aggregate_levels[req.query.level]){
+				tbl = config.pg.aggregate_levels[req.query.level];
 			} else{
-				//Use first aggregate level as default
+				// Use first aggregate level as default
 				tbl = config.pg.aggregate_levels[ Object.keys(config.pg.aggregate_levels)[0] ];
 			}
 			logger.debug("Parsed option 'tbl' as '"+tbl+"'");
 			
 			var start;
-			//3 hours
+			// 3 hours
 			if (req.query.hours && req.query.hours === "3"){
 				logger.debug("Parsed option 'hours' as '3'");
 				start = Math.floor(Date.now()/1000 - 10800);
 			}
-			//6 hours
+			// 6 hours
 			else if (req.query.hours && req.query.hours === "6"){
 				logger.debug("Parsed option 'hours' as '6'");
 				start = Math.floor(Date.now()/1000 - 21600);
 			}
-			//Default to one hour
+			// Default to one hour
 			else {
 				logger.debug("Parsed option 'hours' as '1'");
 				start = Math.floor(Date.now()/1000 - 3600);
@@ -176,13 +170,8 @@ if (config.data === true){
 
 		//Data route for historical aggregate archive
 		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/archive', function(req, res){
-			var end_time;
-			if (req.param('end_time')){
-				end_time = req.param('end_time');
-			}
-			else {
-				end_time = 'NULL';
-			}
+			var end_time = req.param('end_time') ? req.param('end_time') : 'NULL';
+			
 			server.getHistoricalCountByArea(end_time, function(data){
 				var responseData = prepareGeoJSON(res, data[0], req.param('format'));
 				writeResponse(res, responseData);
