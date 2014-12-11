@@ -24,7 +24,7 @@
   },
   "scripts": {
     "test": "npm run-script jshint",
-    "jshint": "jshint config.js server.js",
+    "jshint": "jshint config.js server.js CognicityServer.js",
     "mocha": "mocha test",
     "build-docs": "jsdoc -d docs *.js",
     "build": "npm run-script test && npm run-script build-docs"
