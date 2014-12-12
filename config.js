@@ -28,6 +28,9 @@ config.pg = {};
 // Substitute variable names for constants in other environments.
 config.pg.conString = 'postgres://' + process.env.RDS_USERNAME + ':' + process.env.RDS_PASSWORD +'@' + process.env.RDS_HOSTNAME + ':' + process.env.RDS_PORT + '/' + process.env.DB_NAME;
 
+config.pg.reconnectionDelay = 1000 * 60 * 3; // Delay before attempting a reconnection in ms
+config.pg.reconnectionAttempts = 5; // Number of times to attempt reconnection before notifying admin and exiting
+
 config.pg.tbl_reports = 'tweet_reports';
 config.pg.tbl_reports_unconfirmed = 'tweet_reports_unconfirmed';
 

@@ -54,6 +54,11 @@ You can then run `grunt` if you need to rebuild the build products following cha
 ### Configuration
 Server configuration parameters are stored in a configuration file which is parsed by server.js. See config.js for an example configuration. It is possible to run multiple server instances using different configuration files so long as a unique port is assigned to each instance.
 
+#### Postgres connection
+* connection string - PostgreSQL connection details (see node-postgres module documenation)[https://github.com/brianc/node-postgres]
+* reconnectionDelay - Delay between reconnection attempts if postgres connection lost
+* reconnectionAttempts - Number of times to attempt to reconnect before dying
+
 #### Serving web content
 The `config.public_dir` parameter is the location of public HTML, CSS, JS web pages to serve.
 By default pages are served at [http://localhost:8080/project-name/], the optional prefix URL can be changed using the `config.url_prefix` configuration parameter.
