@@ -20,35 +20,28 @@ CognicityServer.prototype = {
 	dataQuery: function(pgcon, queryObject, callback){
 		var self = this;
 		
-		self.logger.debug("queryObject:"+JSON.stringify(queryObject));
+		self.logger.debug( "dataQuery: queryObject=" + JSON.stringify(queryObject) );
 		self.pg.connect(pgcon, function(err, client, done){
 			if (err){
 				self.logger.error("dataQuery: " + JSON.stringify(queryObject) + ", " + err);
 				done();
-				callback({"data":null});
+				callback( new Error('Database connection error') );
 				return;
 			}
 			
 			client.query(queryObject, function(err, result){
 				if (err){
-					self.logger.error(JSON.stringify(queryObject) +'\n'+ err);
 					done();
-					callback({"data":null});
-				}
-				else if (result && result.rows){
-					if (result.rows.length === 0){
-						callback({"data":null});
-						done();
-					}
-					else{
-						callback(result.rows);
-						done();
-					}
-				}
-				// something bad happened, return data:null, so client can handle error.
-				else {
-					callback({"data":null});
+					self.logger.error( "dataQuery: Database query failed, " + err.message + ", queryObject=" + JSON.stringify(queryObject) );
+					callback( new Error('Database query error') );
+				} else if (result && result.rows){
+					self.logger.debug( "dataQuery: " + result.rows.length + " rows returned" );
 					done();
+					callback(null, result.rows);
+				} else {
+					// TODO Can we ever get to this point?
+					done();
+					callback( new Error('Unknown query error, queryObject=' + JSON.stringify(queryObject) ) );
 				}
 			});
 		});
@@ -148,6 +141,8 @@ CognicityServer.prototype = {
 	getCountByArea: function(options, callback){
 		var self = this;
 
+		// TODO Params which aren't really params (table names) should be stored in a different object
+		
 		// Default parameters for this data
 		var param = ({
 			start: Math.floor(Date.now()/1000 - 3600), //60 minutes ago
@@ -162,6 +157,7 @@ CognicityServer.prototype = {
 				param[key] = options[key];
 			}
 		}
+		
 		// SQL
 		// Note that references to tables were left unparameterized as these cannot be passed by user
 		var queryObject = {
