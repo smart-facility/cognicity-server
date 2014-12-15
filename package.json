@@ -23,8 +23,8 @@
     "node": "^0.10.16"
   },
   "scripts": {
-    "test": "npm run-script jshint",
-    "jshint": "jshint config.js server.js CognicityServer.js",
+    "test": "npm run-script jshint && npm run-script mocha",
+    "jshint": "jshint config.js server.js CognicityServer.js test/testServer.js",
     "mocha": "mocha test",
     "build-docs": "jsdoc -d docs server.js CognicityServer.js",
     "build": "npm run-script test && npm run-script build-docs"
