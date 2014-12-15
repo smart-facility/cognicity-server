@@ -51,17 +51,15 @@ CognicityServer.prototype = {
 	 * Perform a query against the database using the parameterized query in the queryObject.
 	 * Call the callback with error information or result information.
 	 * 
-	 * @param pgcon {String} Postgres server connection string
 	 * @param queryObject {Object} Query object for parameterized postgres query
 	 * @param callback {dataQueryCallback} Callback function for handling error or response data
 	 */
-	dataQuery: function(pgcon, queryObject, callback){
+	dataQuery: function(queryObject, callback){
 		var self = this;
 		
 		self.logger.debug( "dataQuery: queryObject=" + JSON.stringify(queryObject) );
 		
-		// TODO Make pgcon read from config here and don't require it as an argument to this function
-		self.pg.connect(pgcon, function(err, client, done){
+		self.pg.connect(self.config.pg.conString, function(err, client, done){
 			if (err){
 				self.logger.error("dataQuery: " + JSON.stringify(queryObject) + ", " + err);
 				done();
@@ -136,7 +134,7 @@ CognicityServer.prototype = {
 		};
 
 		// Call data query
-		self.dataQuery(self.config.pg.conString, queryObject, callback);
+		self.dataQuery(queryObject, callback);
 	},
 
 	/**
@@ -185,7 +183,7 @@ CognicityServer.prototype = {
 		};
 
 		// Call data query
-		self.dataQuery(self.config.pg.conString, queryObject, callback);
+		self.dataQuery(queryObject, callback);
 	},
 
 	/**
@@ -277,7 +275,7 @@ CognicityServer.prototype = {
 		};
 
 		// Call data query
-		self.dataQuery(self.config.pg.conString, queryObject, callback);
+		self.dataQuery(queryObject, callback);
 	},
 
 	/**
@@ -318,7 +316,7 @@ CognicityServer.prototype = {
 		};
 
 		// Call data query
-		self.dataQuery(self.config.pg.conString, queryObject, callback);
+		self.dataQuery(queryObject, callback);
 	},
 
 	/**
@@ -343,7 +341,7 @@ CognicityServer.prototype = {
 		};
 
 		// Call data query
-		self.dataQuery(self.config.pg.conString, queryObject, callback);	
+		self.dataQuery(queryObject, callback);	
 	}
 	
 };
