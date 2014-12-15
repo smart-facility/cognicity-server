@@ -1,5 +1,14 @@
 'use strict';
 
+/**
+ * A CognicityServer object queries against the cognicity database and returns data to be returned
+ * to the client via the REST service.
+ * @constructor
+ * @this {CognicityServer}
+ * @param {Object} config The server configuration object loaded from the configuration file
+ * @param {Object} logger Winston logger instance
+ * @param {Object} pg Postgres 'pg' module instance
+ */
 var CognicityServer = function(
 	config,
 	logger,
@@ -12,15 +21,46 @@ var CognicityServer = function(
 };
 
 CognicityServer.prototype = {
+	
+	/**
+	 * Server configuration object loaded from the configuration file
+	 * @type {Object}
+	 */
 	config: null,
+	
+	/**
+	 * Winston logger instance
+	 * @type {Object}
+	 */
 	logger: null,
+	
+	/**
+	 * 'pg' module Postgres interface instance
+	 * @type {Object}
+	 */
 	pg: null,
 	
-	//Function for database calls
+	/**
+	 * DB query callback
+	 * @callback dataQueryCallback
+	 * @param {Error} err An error instance describing the error that occurred, or null if no error
+	 * @param {Object} data Response data object which is 'result.rows' from the pg module response
+	 */
+	
+	/**
+	 * Perform a query against the database using the parameterized query in the queryObject.
+	 * Call the callback with error information or result information.
+	 * 
+	 * @param pgcon {String} Postgres server connection string
+	 * @param queryObject {Object} Query object for parameterized postgres query
+	 * @param callback {dataQueryCallback} Callback function for handling error or response data
+	 */
 	dataQuery: function(pgcon, queryObject, callback){
 		var self = this;
 		
 		self.logger.debug( "dataQuery: queryObject=" + JSON.stringify(queryObject) );
+		
+		// TODO Make pgcon read from config here and don't require it as an argument to this function
 		self.pg.connect(pgcon, function(err, client, done){
 			if (err){
 				self.logger.error("dataQuery: " + JSON.stringify(queryObject) + ", " + err);
@@ -47,6 +87,12 @@ CognicityServer.prototype = {
 		});
 	},
 
+	/**
+	 * Get confirmed reports from the database.
+	 * Call the callback function with error or response data.
+	 * @param options {Object} Configuration options for the query
+	 * @param callback {dataQueryCallback} Callback for handling error or response data
+	 */
 	getReports: function(options, callback){
 		var self = this;
 		
@@ -93,7 +139,12 @@ CognicityServer.prototype = {
 		self.dataQuery(self.config.pg.conString, queryObject, callback);
 	},
 
-	// Unconfirmed reports
+	/**
+	 * Get unconfirmed reports from the database.
+	 * Call the callback function with error or response data.
+	 * @param options {Object} Configuration options for the query
+	 * @param callback {dataQueryCallback} Callback for handling error or response data
+	 */
 	getUnConfirmedReports: function(options, callback){
 		var self = this;
 		
@@ -137,7 +188,12 @@ CognicityServer.prototype = {
 		self.dataQuery(self.config.pg.conString, queryObject, callback);
 	},
 
-	// Function to count unconfirmed reports within given polygon layer (e.g. wards)
+	/**
+	 * Count unconfirmed reports within given polygon layer (e.g. wards)
+	 * Call the callback function with error or response data.
+	 * @param options {Object} Configuration options for the query
+	 * @param callback {dataQueryCallback} Callback for handling error or response data
+	 */
 	getCountByArea: function(options, callback){
 		var self = this;
 
@@ -224,7 +280,11 @@ CognicityServer.prototype = {
 		self.dataQuery(self.config.pg.conString, queryObject, callback);
 	},
 
-	//Sum of confirmed and unconfirmed aggregates from archive
+	/**
+	 * Sum of confirmed and unconfirmed aggregates from archive
+	 * @param end_time {String} The end time of the reports to include
+	 * @param callback {dataQueryCallback} Callback for handling error or response data
+	 */
 	getHistoricalCountByArea: function(end_time, callback){
 		var self = this;
 		
@@ -257,10 +317,15 @@ CognicityServer.prototype = {
 			]
 		};
 
-		//Call data query
+		// Call data query
 		self.dataQuery(self.config.pg.conString, queryObject, callback);
 	},
 
+	/**
+	 * Sum of confirmed and unconfirmed aggregates from archive
+	 * @param name {String} The key of the infrastructure configuration item 
+	 * @param callback {dataQueryCallback} Callback for handling error or response data
+	 */
 	getInfrastructure: function(name, callback){
 		var self = this;
 		
@@ -277,7 +342,7 @@ CognicityServer.prototype = {
 			values: []		
 		};
 
-		//Call data query
+		// Call data query
 		self.dataQuery(self.config.pg.conString, queryObject, callback);	
 	}
 	

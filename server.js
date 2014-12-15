@@ -2,23 +2,37 @@
 
 // server.js - nodejs server for cognicity framework
 
-// Tomas Holderness January 2014
+/**
+ * @file REST service querying cognicity database and responding with JSON data
+ * @copyright (c) Tomas Holderness & SMART Infrastructure Facility January 2014
+ * @license Released under GNU GPLv3 License (see LICENSE.txt).
+ * @example
+ * Usage:	
+ *     node server.js config.js
+ */
+
+// Node dependencies
+var path = require('path');
 
 // Modules
-var path = require('path');
+/** Express framework module, used to handle http server interface */
 var express = require('express');
+/** Postgres 'pg' module, used for database interaction */
 var pg = require('pg');
+/** memory-cache module, used to cache responses */
 var cache = require('memory-cache');
+/** topojson module, used for response format conversion */
 var topojson = require('topojson');
-/** Winston logger module */
+/** Winston logger module, used for logging */
 var logger = require('winston');
-var CognicityServer = require('./CognicityServer.js');
+/** CognicityServer module, application logic and database interaction is handled here */
+var cognicityServer = require('./CognicityServer.js');
 
 // Read in config file from argument or default
 var configFile = ( process.argv[2] ? process.argv[2] : 'config.js' );
 var config = require( __dirname + path.sep + configFile );
 
-// Express
+/** Express application instance */
 var app = express();
 
 // Logging
@@ -80,10 +94,15 @@ pg.connect(config.pg.conString, function(err, client, done){
 	}
 });
 
-var server = new CognicityServer(config, logger, pg);
+/** 
+ * CognicityServer interface module
+ * @type {CognicityServer}
+ */
+var server = new cognicityServer(config, logger, pg); // Variable needs to be lowercase or jsdoc output is not correctly linked
 
-// Define a winston stream function we can plug in to express so we can
-// capture its logs along with our own
+/**
+ * Winston stream function we can plug in to express so we can capture its logs along with our own
+ */
 var winstonStream = {
     write: function(message, encoding){
     	logger.info(message.slice(0, -1));
@@ -146,7 +165,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareGeoJSON(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.param('format'));
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -161,7 +180,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareGeoJSON(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.param('format'));
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -205,7 +224,7 @@ if (config.data === true){
 					next(err);
 				} else {
 					// Prepare the response data, cache it, and write out the response
-					var responseData = prepareGeoJSON(res, data[0], req.param('format'));
+					var responseData = prepareResponse(res, data[0], req.param('format'));
 					cacheTemporarily(req.originalUrl, responseData);
 					writeResponse(res, responseData);
 				}
@@ -220,7 +239,7 @@ if (config.data === true){
 				if (err) {
 					next(err);
 				} else {
-					var responseData = prepareGeoJSON(res, data[0], req.param('format'));
+					var responseData = prepareResponse(res, data[0], req.param('format'));
 					writeResponse(res, responseData);
 				}
 			});
@@ -236,7 +255,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareGeoJSON(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.param('format'));
 				cachePermanently(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -245,12 +264,20 @@ if (config.data === true){
 
 }
 
-// Store in the memory cache with no timeout
+/** 
+ * Store the response in the memory cache with no timeout 
+ * @param cacheKey {String} Key for the cache entry
+ * @param data Data to store in the cache
+ */
 function cachePermanently(cacheKey, data){
 	cache.put(cacheKey, data);
 }
 
-// Store in the memory cache with timeout
+/** 
+ * Store the response the memory cache with timeout 
+ * @param cacheKey {String} Key for the cache entry
+ * @param data Data to store in the cache
+ */
 function cacheTemporarily(cacheKey, data){
 	cache.put(cacheKey, data, config.cache_timeout);
 }
@@ -270,18 +297,28 @@ app.use(function(err, req, res, next){
 	writeResponse( res, { code: 204, headers: {}, body: null } );
 });
 
-function prepareGeoJSON(res, data, format){
+/**
+ * Prepare the response data for sending to the client.
+ * Will optionally format the data as topojson if this is requested via the 'format' parameter.
+ * Returns a response object containing everything needed to send a response which can be sent or cached.
+ * 
+ * @param res {Object} The express 'res' response object
+ * @param data {Object} The data we're going to return to the client
+ * @param format {String} Optional format parameter for the response data; either nothing or 'topojson'
+ * @returns {Object} Response object with code, headers and body properties.
+ */
+function prepareResponse(res, data, format){
 	var responseData = {};
 	
 	if (format === 'topojson' && data.features){
+		// Convert to topojson and construct the response object
 		var topology = topojson.topology({collection:data},{"property-transform":function(object){return object.properties;}});
 
 		responseData.code = 200;
 		responseData.headers = {"Content-type":"application/json"};
 		responseData.body = JSON.stringify(topology, "utf8");
 	} else {
-		// Firefox will hang and receive the request forever if it receives a content type and 0 bytes of data
-		// In that case, data here is 'undefined', so we send nothing
+		// Construct the response object in JSON format or an empty (but successful) response
 		if (data) {
 			responseData.code = 200;
 			responseData.headers = {"Content-type":"application/json"};
@@ -296,6 +333,13 @@ function prepareGeoJSON(res, data, format){
 	return responseData;
 }
 
+/**
+ * Write a response object to the client using express.
+ * Will write the response code, response headers and response body, and then end the response stream.
+ * 
+ * @param res {Object} Express 'res' response object
+ * @param responseData The response data object with code, headers and body properties.
+ */
 function writeResponse(res, responseData) {
 	res.writeHead( responseData.code, responseData.headers );
 	res.end( responseData.body );
