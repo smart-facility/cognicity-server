@@ -76,10 +76,11 @@ The following routes exist (prefixed by the scheme and authority):
 * `/data/api/v1/aggregates/live` - Live aggregates
 * `/data/api/v1/aggregates/archive` - Archived aggregates
 * `/data/api/v1/infrastructure/*` - Infrastructure data (e.g. waterways, pumps and floodgates in the sample config)
+
 A URL parameter of 'format=topojson' can be appended to any route to receive the response data in topojson format.
 
-* Data routes can be disabled (e.g. for testing) by setting the `config.data` parameter to false.
-* Aggregate routes can be disabled by setting the `config.aggregates` parameter to false.
+Data routes can be disabled (e.g. for testing) by setting the `config.data` parameter to false.
+Aggregate routes can be disabled by setting the `config.aggregates` parameter to false.
 
 #### Caching
 Requests are cached either temporarily (with a timeout set by the `config.cache_timeout` parameter) or permanently depending on the route.
