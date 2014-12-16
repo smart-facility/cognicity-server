@@ -10,16 +10,16 @@ CogniCity
 Cognicity-server is the NodeJS server module for the CogniCity framework, responsible for serving reports and web content. For detailed framework documentation see [http://cognicity.info](http://cognicity.info).
 
 ### Dependencies
-* [NodeJS](http://nodejs.org) version 0.10.12 or later
+* [NodeJS](http://nodejs.org) version 0.10.16 or later
 * [PostgreSQL](http://www.postgresql.org) version 9.2 or later, with [PostGIS](http://postgis/) version 2.0 or later.
 
 #### Node Modules
-* Express version 3.2.6 or compatible
-* Node-Daemonize 2 version 0.4.2 or compatible
-* Node-Postgres version 2.0.0 or compatible
-* Memory-Cache version 0.0.5 or compatible
-* topojson version 1.6.14 or compatible
-* winston version 0.8.1 or compatible
+* [Express](http://expressjs.com/) version 3.2.6 or compatible
+* [Node-Daemonize 2](https://github.com/niegowski/node-daemonize2/) version 0.4.2 or compatible
+* [Node-Postgres](https://github.com/brianc/node-postgres) version 2.0.0 or compatible
+* [Memory-Cache](https://github.com/ptarjan/node-cache) version 0.0.5 or compatible
+* [topojson](https://github.com/mbostock/topojson) version 1.6.14 or compatible
+* [winston](https://github.com/flatiron/winston) version 0.8.1 or compatible
 
 #### External Node software
 * [Grunt](http://gruntjs.com)
@@ -55,7 +55,7 @@ You can then run `grunt` if you need to rebuild the build products following cha
 Server configuration parameters are stored in a configuration file which is parsed by server.js. See config.js for an example configuration. It is possible to run multiple server instances using different configuration files so long as a unique port is assigned to each instance.
 
 #### Postgres connection
-* connection string - PostgreSQL connection details (see node-postgres module documenation)[https://github.com/brianc/node-postgres]
+* conString - PostgreSQL connection string (see node-postgres module documenation)[https://github.com/brianc/node-postgres]
 * reconnectionDelay - Delay between reconnection attempts if postgres connection lost
 * reconnectionAttempts - Number of times to attempt to reconnect before dying
 
@@ -90,7 +90,7 @@ project-name daemon stopped
 ```
 
 ### Logging
-Winston logger writes to `[config.instance].log`
+Winston logger writes to `[config.instance].log`. The log directory is configurable.
 
 #### Logging parameters
 * level - info or debug are most useful here, debug will give you more verbose logging output
