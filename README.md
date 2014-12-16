@@ -65,18 +65,24 @@ Server configuration parameters are stored in a configuration file which is pars
 * reconnectionAttempts - Number of times to attempt to reconnect before dying
 
 #### Serving web content
-The `config.public_dir` parameter is the location of public HTML, CSS, JS web pages to serve.
-By default pages are served at [http://localhost:8080/project-name/], the optional prefix URL can be changed using the `config.url_prefix` configuration parameter.
+* The `config.public_dir` parameter is the location of public HTML, CSS, JS web pages to serve.
+* By default pages are served at [http://localhost:8080/project-name/], the optional prefix URL can be changed using the `config.url_prefix` configuration parameter.
+* The `config.root_redirect` parameter defines where a client is redirected to if they request the root path of the server
 
 #### Data Routes
-By default cognicity-server serves confirmed and unconfirmed reports in GeoJson format at:
-[http://localhost:8080/project-name/data/reports.json]
+The following routes exist (prefixed by the scheme and authority):
+* `/data/api/v1/reports/confirmed` - Confirmed reports
+* `/data/api/v1/reports/unconfirmed` - Unconfirmed reports
+* `/data/api/v1/aggregates/live` - Live aggregates
+* `/data/api/v1/aggregates/archive` - Archived aggregates
+* `/data/api/v1/infrastructure/*` - Infrastructure data (e.g. waterways, pumps and floodgates in the sample config)
+A URL parameter of 'format=topojson' can be appended to any route to receive the response data in topojson format.
 
-The query parameter `type` can be used to select confirmed or unconfirmed reports. For example:
-[http://localhost:8080/project-name-data/reports.json?type=unconfirmed]
-The default (no query) is to server confirmed reports.
+* Data routes can be disabled (e.g. for testing) by setting the `config.data` parameter to false.
+* Aggregate routes can be disabled by setting the `config.aggregates` parameter to false.
 
-Data routes can be disabled (e.g. for testing) by setting the `config.data` parameter to false.
+#### Caching
+Requests are cached either temporarily (with a timeout set by the `config.cache_timeout` parameter) or permanently depending on the route.
 
 ### Run
 The server is launched by node.js directly. In production, software on the server should manage launching, health checking and restarting) of the process.
