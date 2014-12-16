@@ -15,11 +15,16 @@ Cognicity-server is the NodeJS server module for the CogniCity framework, respon
 
 #### Node Modules
 * [Express](http://expressjs.com/) version 3.2.6 or compatible
-* [Node-Daemonize 2](https://github.com/niegowski/node-daemonize2/) version 0.4.2 or compatible
 * [Node-Postgres](https://github.com/brianc/node-postgres) version 2.0.0 or compatible
 * [Memory-Cache](https://github.com/ptarjan/node-cache) version 0.0.5 or compatible
 * [topojson](https://github.com/mbostock/topojson) version 1.6.14 or compatible
 * [winston](https://github.com/flatiron/winston) version 0.8.1 or compatible
+
+#### Dev Modules
+* [jshint](https://github.com/jshint/node-jshint) version 2.5.8 or compatible
+* [unit.js](http://unitjs.com/) version 1.0.2 or compatible
+* [mocha](http://mochajs.org/) version 2.0.1 or compatible
+* [jsdoc](https://github.com/jsdoc3/jsdoc) version 3.3.0 or compatible
 
 #### External Node software
 * [Grunt](http://gruntjs.com)
@@ -74,19 +79,11 @@ The default (no query) is to server confirmed reports.
 Data routes can be disabled (e.g. for testing) by setting the `config.data` parameter to false.
 
 ### Run
-The server is run as a background process using the Daemonize 2 library. The process name is set to the configuration instance `config.instance` defined in the configuration file.
+The server is launched by node.js directly. In production, software on the server should manage launching, health checking and restarting) of the process.
 
 ```shell
 $ cd cognicity-server/
-$ node daemon.js start
-project-name daemon started. PID 2953
-project-name running on port: 8081
-
-$node daemon.js sample-config.js status
-project-name running on port: 8081
-
-$node daemon.js sample-config.js stop
-project-name daemon stopped
+$ node server.js config.js
 ```
 
 ### Logging
