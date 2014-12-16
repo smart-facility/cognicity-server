@@ -1,6 +1,6 @@
 'use strict';
 
-//test-config.js - require sample config and change some properties for test
+// test-config.js - include the sample config and change some properties for test
 
 var config = require("./config.js");
 
