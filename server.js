@@ -15,24 +15,45 @@
 var path = require('path');
 
 // Modules
-/** Express framework module, used to handle http server interface */
+/** 
+ * Express framework module, used to handle http server interface
+ * @type {Object}
+ */
 var express = require('express');
-/** Postgres 'pg' module, used for database interaction */
+/** 
+ * Postgres 'pg' module, used for database interaction
+ * @type {Object} 
+ */
 var pg = require('pg');
-/** memory-cache module, used to cache responses */
+/** 
+ * memory-cache module, used to cache responses
+ * @type {Object} 
+ */
 var cache = require('memory-cache');
-/** topojson module, used for response format conversion */
+/** 
+ * topojson module, used for response format conversion
+ * @type {Object}
+ */
 var topojson = require('topojson');
-/** Winston logger module, used for logging */
+/** 
+ * Winston logger module, used for logging
+ * @type {Object}
+ */
 var logger = require('winston');
-/** CognicityServer module, application logic and database interaction is handled here */
+/** 
+ * CognicityServer module, application logic and database interaction is handled here
+ * @type {Object}
+ */
 var cognicityServer = require('./CognicityServer.js');
 
 // Read in config file from argument or default
 var configFile = ( process.argv[2] ? process.argv[2] : 'config.js' );
 var config = require( __dirname + path.sep + configFile );
 
-/** Express application instance */
+/** 
+ * Express application instance
+ * @type {Object}
+ */
 var app = express();
 
 // Logging
@@ -102,6 +123,7 @@ var server = new cognicityServer(config, logger, pg); // Variable needs to be lo
 
 /**
  * Winston stream function we can plug in to express so we can capture its logs along with our own
+ * @type {Object}
  */
 var winstonStream = {
     write: function(message, encoding){
@@ -266,8 +288,8 @@ if (config.data === true){
 
 /** 
  * Store the response in the memory cache with no timeout 
- * @param cacheKey {String} Key for the cache entry
- * @param data Data to store in the cache
+ * @param {String} cacheKey Key for the cache entry
+ * @param {Object} data Data to store in the cache
  */
 function cachePermanently(cacheKey, data){
 	cache.put(cacheKey, data);
@@ -275,8 +297,8 @@ function cachePermanently(cacheKey, data){
 
 /** 
  * Store the response the memory cache with timeout 
- * @param cacheKey {String} Key for the cache entry
- * @param data Data to store in the cache
+ * @param {String} cacheKey Key for the cache entry
+ * @param {Object} data Data to store in the cache
  */
 function cacheTemporarily(cacheKey, data){
 	cache.put(cacheKey, data, config.cache_timeout);
@@ -287,6 +309,7 @@ app.use(function(req, res, next){
   res.send('Error 404 - Page not found', 404);
 });
 
+// Error handler function
 app.use(function(err, req, res, next){
 	// TODO Uncomment this code when the client can cope with error status codes
 	logger.error( "Express error: " + err.status + ", " + err.message + ", " + err.stack );
@@ -302,9 +325,9 @@ app.use(function(err, req, res, next){
  * Will optionally format the data as topojson if this is requested via the 'format' parameter.
  * Returns a response object containing everything needed to send a response which can be sent or cached.
  * 
- * @param res {Object} The express 'res' response object
- * @param data {Object} The data we're going to return to the client
- * @param format {String} Optional format parameter for the response data; either nothing or 'topojson'
+ * @param {Object} res The express 'res' response object
+ * @param {Object} data The data we're going to return to the client
+ * @param {String} format Optional format parameter for the response data; either nothing or 'topojson'
  * @returns {Object} Response object with code, headers and body properties.
  */
 function prepareResponse(res, data, format){
@@ -337,8 +360,8 @@ function prepareResponse(res, data, format){
  * Write a response object to the client using express.
  * Will write the response code, response headers and response body, and then end the response stream.
  * 
- * @param res {Object} Express 'res' response object
- * @param responseData The response data object with code, headers and body properties.
+ * @param {Object} res Express 'res' response object
+ * @param {Object} responseData The response data object with code, headers and body properties.
  */
 function writeResponse(res, responseData) {
 	res.writeHead( responseData.code, responseData.headers );
