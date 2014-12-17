@@ -102,5 +102,16 @@ Winston logger writes to `[config.instance].log`. The log directory is configura
 * maxFiles - number of log files to retain
 * logDirectory - Specify a full path to the log directory. If not specified, the application directory will be used.
 
+### Development
+
+#### Git Hooks
+There is a git pre-commit hook which will run the 'npm test' command before your commit and will fail the commit if testing fails.
+
+To use this hook, copy the file from 'git-hooks/pre-commit' to '.git/hooks/pre-commit' in your project folder.
+
+```shell
+cp git-hooks/pre-commit .git/hooks/
+```
+
 ### License
 This software is released under the GPLv3 License. See License.txt for details.
