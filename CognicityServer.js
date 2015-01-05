@@ -198,13 +198,14 @@ CognicityServer.prototype = {
 		// Database table references
 		var point_layer_uc = self.config.pg.tbl_reports_unconfirmed; // unconfirmed reports
 		var point_layer = self.config.pg.tbl_reports; // confirmed reports
-		var polygon_layer = self.config.pg.tbl_polygon_0; // smallest scale polygon table
 		
 		// Default parameters for this data
-		var param = ({
+		var param = {
 			start: Math.floor(Date.now()/1000 - 3600), //60 minutes ago
-			end:  Math.floor(Date.now()/1000) // now
-		});
+			end: Math.floor(Date.now()/1000), // now
+			// TODO The default definition for this is duplicated in server.js and here, where's the best place for it to happen?
+			polygon_layer: self.config.pg.aggregate_levels[ Object.keys(self.config.pg.aggregate_levels)[0] ]
+		};
 
 		for (var key in param) {
 			if (options.hasOwnProperty(key)){
@@ -237,12 +238,12 @@ CognicityServer.prototype = {
 								"p1.area_name, " +
 								"p1.the_geom, " +
 								"COALESCE(count.count,0) count " +
-							"FROM " + polygon_layer + " AS p1 " +
+							"FROM " + param.polygon_layer + " AS p1 " +
 							"LEFT OUTER JOIN ( " +
 								"SELECT b.pkey, " +
 									"count(a.pkey) " +
 								"FROM " + point_layer_uc + " a, " + 
-									polygon_layer + " b " +
+									param.polygon_layer + " b " +
 								"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
 									"a.created_at >=to_timestamp($1) AND " +
 									"a.created_at <= to_timestamp($2) " +
@@ -252,12 +253,12 @@ CognicityServer.prototype = {
 						") as c1, ( " +
 							"SELECT p1.pkey, " +
 								"COALESCE(count.count,0) count  " +
-							"FROM " + polygon_layer + " AS p1 " +
+							"FROM " + param.polygon_layer + " AS p1 " +
 							"LEFT OUTER JOIN( " +
 								"SELECT b.pkey, " +
 									"count(a.pkey) " +
 								"FROM " + point_layer + " a, " + 
-									polygon_layer + " b " +
+									param.polygon_layer + " b " +
 								"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
 									"a.created_at >= to_timestamp($1) AND " +
 									"a.created_at <= to_timestamp($2) " +
