@@ -195,18 +195,18 @@ CognicityServer.prototype = {
 	getCountByArea: function(options, callback){
 		var self = this;
 
-		// TODO Params which aren't really params (table names) should be stored in a different object
+		// Database table references
+		var point_layer_uc = self.config.pg.tbl_reports_unconfirmed; // unconfirmed reports
+		var point_layer = self.config.pg.tbl_reports; // confirmed reports
+		var polygon_layer = self.config.pg.tbl_polygon_0; // smallest scale polygon table
 		
 		// Default parameters for this data
 		var param = ({
 			start: Math.floor(Date.now()/1000 - 3600), //60 minutes ago
-			end:  Math.floor(Date.now()/1000), // now
-			point_layer_uc: self.config.pg.tbl_reports_unconfirmed, // unconfirmed reports
-			point_layer: self.config.pg.tbl_reports, //confirmed reports
-			polygon_layer: self.config.pg.tbl_polygon_0 // smallest scale polygon table
+			end:  Math.floor(Date.now()/1000) // now
 		});
 
-		for (var key in param){
+		for (var key in param) {
 			if (options.hasOwnProperty(key)){
 				param[key] = options[key];
 			}
@@ -237,12 +237,12 @@ CognicityServer.prototype = {
 								"p1.area_name, " +
 								"p1.the_geom, " +
 								"COALESCE(count.count,0) count " +
-							"FROM " + param.polygon_layer + " AS p1 " +
+							"FROM " + polygon_layer + " AS p1 " +
 							"LEFT OUTER JOIN ( " +
 								"SELECT b.pkey, " +
 									"count(a.pkey) " +
-								"FROM " + param.point_layer_uc + " a, " + 
-									param.polygon_layer + " b " +
+								"FROM " + point_layer_uc + " a, " + 
+									polygon_layer + " b " +
 								"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
 									"a.created_at >=to_timestamp($1) AND " +
 									"a.created_at <= to_timestamp($2) " +
@@ -252,12 +252,12 @@ CognicityServer.prototype = {
 						") as c1, ( " +
 							"SELECT p1.pkey, " +
 								"COALESCE(count.count,0) count  " +
-							"FROM " + param.polygon_layer + " AS p1 " +
+							"FROM " + polygon_layer + " AS p1 " +
 							"LEFT OUTER JOIN( " +
 								"SELECT b.pkey, " +
 									"count(a.pkey) " +
-								"FROM " + param.point_layer + " a, " + 
-									param.polygon_layer + " b " +
+								"FROM " + point_layer + " a, " + 
+									polygon_layer + " b " +
 								"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
 									"a.created_at >= to_timestamp($1) AND " +
 									"a.created_at <= to_timestamp($2) " +
