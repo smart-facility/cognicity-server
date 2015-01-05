@@ -45,8 +45,8 @@ config.pg.infrastructure_tbls = {
 	'pumps':'pumps',
 	'floodgates':'floodgates'
 };
-config.pg.limit = 'NULL'; // Limit number of rows returned in a query
-config.pg.uc_limit = 'NULL'; // Limit number of unconfirmed reports.
+config.pg.limit = null; // Limit number of rows returned in a query
+config.pg.uc_limit = null; // Limit number of unconfirmed reports.
 
 // Logging configuration
 config.logger = {};
