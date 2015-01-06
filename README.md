@@ -36,6 +36,7 @@ To check it out using git, run `git clone --recursive git@github.com:smart-facil
 git submodule init
 git submodule update
 ```
+To update the submodule, first `cd petajakarta-web` then `git pull origin master`, then `cd ..` to move back to the main cognicity-server directory and then `git commit` and `git push` along with any other changes.
 
 #### Platform-specific notes ####
 To build on OS X we recommend using [homebrew](http://brew.sh) to install node, npm, and required node modules as follows:
