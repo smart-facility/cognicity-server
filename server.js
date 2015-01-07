@@ -40,11 +40,18 @@ var topojson = require('topojson');
  * @type {Object}
  */
 var logger = require('winston');
-/** 
+// This variable name needs to be lower case otherwise the JSDoc output does not link to the class
+/* 
  * CognicityServer module, application logic and database interaction is handled here
- * @type {Object}
+ * @type {CognicityServer}
  */
-var cognicityServer = require('./CognicityServer.js');
+var CognicityServer = require('./CognicityServer.js');
+// This variable name needs to be lower case otherwise the JSDoc output does not link to the class
+/* 
+ * Validation module, parameter validation functions
+ * @type {Validation}
+ */
+var Validation = require('./Validation.js');
 /** 
  * moment module, JS date/time manipulation library
  * @type {Object}
@@ -120,11 +127,12 @@ pg.connect(config.pg.conString, function(err, client, done){
 	}
 });
 
-/** 
+/*
  * CognicityServer interface module
  * @type {CognicityServer}
  */
-var server = new cognicityServer(config, logger, pg); // Variable needs to be lowercase or jsdoc output is not correctly linked
+var server = new CognicityServer(config, logger, pg); // Variable needs to be lowercase or jsdoc output is not correctly linked
+var validation = new Validation();
 
 /**
  * Winston stream function we can plug in to express so we can capture its logs along with our own
@@ -271,7 +279,7 @@ if (config.data === true){
 				options.start_time = Math.floor( Date.now() / 1000 - (60*60*6) ); // Default - 1 hour ago
 			}			
 			// Validate parameter
-			if ( !validateNumberParameter(options.start_time, 0, Date.now()) ) {
+			if ( !validation.validateNumberParameter(options.start_time, 0, Date.now()) ) {
 				err = new Error("'start_time' parameter is not valid, it must be an ISO8601 string for a time between 1970 and now");
 				err.status = 400;
 				next(err);
@@ -285,7 +293,7 @@ if (config.data === true){
 				options.blocks = 6; // Default - 6 hours
 			}
 			// Validate parameter
-			if ( !validateNumberParameter(options.blocks, 1, 24) ) {
+			if ( !validation.validateNumberParameter(options.blocks, 1, 24) ) {
 				err = new Error("'blocks' parameter is not valid, it must be a number between 1 and 24");
 				err.status = 400;
 				next(err);
@@ -322,23 +330,6 @@ if (config.data === true){
 		});
 	});
 
-}
-
-// TODO Unit test this function
-
-/**
- * Validate a parameter which should be a number, optionally with min and max values.
- * @param {Object} param Parameter to validate - should be of type 'number'
- * @param {number} min Optional, if supplied minimum value parameter can have and be valid
- * @param {number} max Optional, if supplied maximum value parameter can have and be valid
- */
-function validateNumberParameter(param, min, max) {
-	var valid = true;
-	if ( typeof param !== 'number' ) valid = false;
-	if ( isNaN(param) ) valid = false;
-	if ( min && param < min ) valid = false;
-	if ( max && param > max ) valid = false;
-	return valid;
 }
 
 /** 
