@@ -199,6 +199,18 @@ describe( "getHistoricalCountByArea", function() {
 		test.value( getHistoricalCountByAreaCallbackData[0].blocks[1].plant ).is( getCountByAreaCallbackData[1].plant );
 		test.value( getHistoricalCountByAreaCallbackData[0].blocks[2].plant ).is( getCountByAreaCallbackData[2].plant );
 	});
+	
+	it( 'start and end times are included with each block', function() {
+		server.getHistoricalCountByArea(options, getHistoricalCountByAreaCallback);
+		test.value( getHistoricalCountByAreaCallbackData[0].blocks[0].start_time ).is( "1984-01-02T03:04:05.000Z" );
+		test.value( getHistoricalCountByAreaCallbackData[0].blocks[0].end_time ).is( "1984-01-02T04:04:05.000Z" );
+		
+		test.value( getHistoricalCountByAreaCallbackData[0].blocks[1].start_time ).is( "1984-01-02T04:04:05.000Z" );
+		test.value( getHistoricalCountByAreaCallbackData[0].blocks[1].end_time ).is( "1984-01-02T05:04:05.000Z" );
+		
+		test.value( getHistoricalCountByAreaCallbackData[0].blocks[2].start_time ).is( "1984-01-02T05:04:05.000Z" );
+		test.value( getHistoricalCountByAreaCallbackData[0].blocks[2].end_time ).is( "1984-01-02T06:04:05.000Z" );
+	});
 
 	after( function(){
 		server.getCountByArea = oldGetCountByArea;

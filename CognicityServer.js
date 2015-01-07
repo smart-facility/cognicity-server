@@ -321,7 +321,7 @@ CognicityServer.prototype = {
 				data = data[0];
 				// Store the start and end times that this block was created for in the data
 				data.start_time = new Date(queryOptions.start*1000).toISOString();
-				data.endTime = new Date(queryOptions.end*1000).toISOString();
+				data.end_time = new Date(queryOptions.end*1000).toISOString();
 				// Store the new data in our list of blocks
 				aggregateData.blocks.push(data);
 								
