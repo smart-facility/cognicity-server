@@ -15,57 +15,28 @@
 var path = require('path');
 
 // Modules
-/** 
- * Express framework module, used to handle http server interface
- * @type {Object}
- */
+// Express framework module, used to handle http server interface
 var express = require('express');
-/** 
- * Postgres 'pg' module, used for database interaction
- * @type {Object} 
- */
+//Postgres 'pg' module, used for database interaction
 var pg = require('pg');
-/** 
- * memory-cache module, used to cache responses
- * @type {Object} 
- */
+// memory-cache module, used to cache responses
 var cache = require('memory-cache');
-/** 
- * topojson module, used for response format conversion
- * @type {Object}
- */
+// topojson module, used for response format conversion
 var topojson = require('topojson');
-/** 
- * Winston logger module, used for logging
- * @type {Object}
- */
+// Winston logger module, used for logging
 var logger = require('winston');
-// This variable name needs to be lower case otherwise the JSDoc output does not link to the class
-/* 
- * CognicityServer module, application logic and database interaction is handled here
- * @type {CognicityServer}
- */
+// CognicityServer module, application logic and database interaction is handled here
 var CognicityServer = require('./CognicityServer.js');
-// This variable name needs to be lower case otherwise the JSDoc output does not link to the class
-/* 
- * Validation module, parameter validation functions
- * @type {Validation}
- */
+// Validation module, parameter validation functions
 var Validation = require('./Validation.js');
-/** 
- * moment module, JS date/time manipulation library
- * @type {Object}
- */
+// moment module, JS date/time manipulation library
 var moment = require('moment');
 
 // Read in config file from argument or default
 var configFile = ( process.argv[2] ? process.argv[2] : 'config.js' );
 var config = require( __dirname + path.sep + configFile );
 
-/** 
- * Express application instance
- * @type {Object}
- */
+// Express application instance
 var app = express();
 
 // Logging
@@ -127,17 +98,11 @@ pg.connect(config.pg.conString, function(err, client, done){
 	}
 });
 
-/*
- * CognicityServer interface module
- * @type {CognicityServer}
- */
+// Create instances of CognicityServer and Validation
 var server = new CognicityServer(config, logger, pg); // Variable needs to be lowercase or jsdoc output is not correctly linked
 var validation = new Validation();
 
-/**
- * Winston stream function we can plug in to express so we can capture its logs along with our own
- * @type {Object}
- */
+// Winston stream function we can plug in to express so we can capture its logs along with our own
 var winstonStream = {
     write: function(message, encoding){
     	logger.info(message.slice(0, -1));
