@@ -241,7 +241,7 @@ if (config.data === true){
 				options.start_time = req.param('start_time');
 				options.start_time = moment( req.param('start_time'), moment.ISO_8601 ).unix();
 			} else {
-				options.start_time = Math.floor( Date.now() / 1000 - (60*60*6) ); // Default - 1 hour ago
+				options.start_time = Math.floor( Date.now() / 1000 - (60*60*6) ); // Default - 6 hours ago
 			}			
 			// Validate parameter
 			if ( !validation.validateNumberParameter(options.start_time, 0, Date.now()) ) {

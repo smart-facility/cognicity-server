@@ -82,10 +82,18 @@
           "RequiresOAuth": "N",
           "parameters": [
             {
-              "Name": "end_time",
-              "Description": "The date and time of the end of the aggregate period represented as Unix time. Time should be one of {06:00|12:00|18:00|00:00} Indonesian time.",
+              "Name": "start_time",
+              "Description": "The date and time of the start of the aggregate period as an ISO8601 string, representing a time from 1970-01-01T00:00:00Z until now. Note that basic form cannot be used and extended form (with hyphens and colons) must be used.",
               "Required": "N",
-              "Type": "Unix time integer"
+              "Default": "6 hours prior to the time of request"
+              "Type": "ISO8601 String"
+            },
+            {
+              "Name": "blocks",
+              "Description": "The number of 1-hour blocks to return, starting at 'start_time'.",
+              "Required": "N",
+              "Default": "6"
+              "Type": "integer"
             }
           ]
         }
