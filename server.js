@@ -255,7 +255,7 @@ if (config.data === true){
 			if ( req.param('blocks') ) {
 				options.blocks = Math.floor( Number(req.param('blocks')) );
 			} else {
-				options.blocks = 6; // Default - 6 hours
+				options.blocks = 6; // Default - 6 blocks
 			}
 			// Validate parameter
 			if ( !validation.validateNumberParameter(options.blocks, 1, 24) ) {

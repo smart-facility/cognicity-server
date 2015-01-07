@@ -287,7 +287,7 @@ CognicityServer.prototype = {
 
 	/**
 	 * Sum of confirmed and unconfirmed aggregates from archive
-	 * @param {String} end_time The end time of the reports to include
+	 * @param {Object} options Options object, containing start_time, blocks and polygon_layer properties
 	 * @param {dataQueryCallback} callback Callback for handling error or response data
 	 */
 	getHistoricalCountByArea: function(options, callback){
@@ -319,6 +319,9 @@ CognicityServer.prototype = {
 
 				// Transform the data for simplicity
 				data = data[0];
+				// Store the start and end times that this block was created for in the data
+				data.start_time = new Date(queryOptions.start*1000).toISOString();
+				data.endTime = new Date(queryOptions.end*1000).toISOString();
 				// Store the new data in our list of blocks
 				aggregateData.blocks.push(data);
 								
@@ -326,9 +329,6 @@ CognicityServer.prototype = {
 					// If we've done all the blocks, call the main function success callback
 					callback(null, [aggregateData]);
 				} else {
-					// Store the start and end times that this block was created for in the data
-					data.start_time = new Date(queryOptions.start*1000).toISOString();
-					data.endTime = new Date(queryOptions.end*1000).toISOString();
 					// Increase the start and end times by an hour for the next block
 					queryOptions.start += 3600;
 					queryOptions.end += 3600;
