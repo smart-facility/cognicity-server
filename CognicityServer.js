@@ -94,6 +94,8 @@ CognicityServer.prototype = {
 	getReports: function(options, callback){
 		var self = this;
 		
+		// TODO Define default param values and param parsing in the server
+		
 		// Default parameters for this data
 		// Time parameters hard coded for operation
 		var param = ({
@@ -146,6 +148,8 @@ CognicityServer.prototype = {
 	getUnConfirmedReports: function(options, callback){
 		var self = this;
 		
+		// TODO Define default param values and param parsing in the server
+
 		// Default parameters for this data
 		var param = ({
 			start: Math.floor(Date.now()/1000 - 3600), //60 minutes ago.
@@ -198,6 +202,8 @@ CognicityServer.prototype = {
 		// Database table references
 		var point_layer_uc = self.config.pg.tbl_reports_unconfirmed; // unconfirmed reports
 		var point_layer = self.config.pg.tbl_reports; // confirmed reports
+		
+		// TODO Define default param values and param parsing in the server
 		
 		// Default parameters for this data
 		var param = {
@@ -284,40 +290,56 @@ CognicityServer.prototype = {
 	 * @param {String} end_time The end time of the reports to include
 	 * @param {dataQueryCallback} callback Callback for handling error or response data
 	 */
-	getHistoricalCountByArea: function(end_time, callback){
+	getHistoricalCountByArea: function(options, callback){
 		var self = this;
-		
-		var queryObject = {
-			text: "SELECT 'FeatureCollection' AS type, " +
-					"array_to_json(array_agg(f)) AS features " +
-				"FROM (SELECT 'Feature' AS type, " +
-					"ST_AsGeoJSON(lg.the_geom)::json AS geometry, " +
-					"row_to_json( " +
-						"(SELECT l FROM " +
-							"(SELECT lg.level_name, lg.sum_count, lg.start_time, lg.end_time) AS l " +
-						") " +
-					") AS properties FROM (" +
-						"SELECT a.area_name as level_name, " +
-							"a.the_geom, " +
-							"b.count+c.count sum_count, " +
-							"b.start_time, " +
-							"b.end_time " +
-						"FROM jkt_rw_boundary a, " +
-							"rw_count_reports_confirmed b, " +
-							"rw_count_reports_unconfirmed c " +
-						"WHERE b.rw_pkey = a.pkey AND " +
-							"b.rw_pkey = c.rw_pkey AND " +
-							"b.end_time = to_timestamp($1) AND " +
-							"c.end_time = to_timestamp($1) " +
-					") AS lg " +
-				") AS f;",
-			values: [
-			    end_time
-			]
-		};
 
-		// Call data query
-		self.dataQuery(queryObject, callback);
+		// TODO There is 1 second of overlap in the start and end times - we should fix this
+		
+		// Setup variables so we can do a count-by-area query for each block and join the responses together
+		var blocksQueried = 0;
+		var aggregateData = { blocks:[] };
+		var queryOptions = {
+			start: options.start_time,
+			end: options.start_time + 3600,
+			polygon_layer: options.polygon_layer
+		};
+		
+		// Perform one count-by-area query for a single block, on completion recurse and continue
+		// until we've done all the blocks. Then call the callback passed in to the function to
+		// handle completion of the entire request.
+		var chainQueries = function(err,data) {
+			if (err) {
+				// On error, return the error immediately and no data
+				callback(err, null);
+				return;
+				
+			} else {
+				// Move on to the next block as this one completed
+				blocksQueried++;
+
+				// Transform the data for simplicity
+				data = data[0];
+				// Store the new data in our list of blocks
+				aggregateData.blocks.push(data);
+								
+				if ( blocksQueried === options.blocks ) {
+					// If we've done all the blocks, call the main function success callback
+					callback(null, [aggregateData]);
+				} else {
+					// Store the start and end times that this block was created for in the data
+					data.start_time = new Date(queryOptions.start*1000).toISOString();
+					data.endTime = new Date(queryOptions.end*1000).toISOString();
+					// Increase the start and end times by an hour for the next block
+					queryOptions.start += 3600;
+					queryOptions.end += 3600;
+					// Recurse and handle the next block
+					self.getCountByArea(queryOptions, chainQueries);
+				}
+			}
+		};
+		
+		// Start building the data for the first block
+		self.getCountByArea(queryOptions, chainQueries);
 	},
 
 	/**

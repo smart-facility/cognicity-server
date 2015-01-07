@@ -22,6 +22,12 @@ config.cache_timeout = 60000; // Data cache expiry (1 minute)
 config.data = true; // Enable data routes
 config.aggregates = true; // Enable aggregate data outputs
 
+// API settings
+config.api = {};
+config.api.aggregates = {};
+config.api.aggregates.archive = {};
+config.api.aggregates.archive.level = 'rw';
+
 // Postgres database connection
 config.pg = {};
 // Sample connection string using environment variables, e.g. from AWS Elastic Beanstalk.

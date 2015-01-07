@@ -45,6 +45,11 @@ var logger = require('winston');
  * @type {Object}
  */
 var cognicityServer = require('./CognicityServer.js');
+/** 
+ * moment module, JS date/time manipulation library
+ * @type {Object}
+ */
+var moment = require('moment');
 
 // Read in config file from argument or default
 var configFile = ( process.argv[2] ? process.argv[2] : 'config.js' );
@@ -253,11 +258,44 @@ if (config.data === true){
 			});
 		});
 
-		//Data route for historical aggregate archive
+		// Data route for historical aggregate archive
 		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/archive', function(req, res, next){
-			var end_time = req.param('end_time') ? req.param('end_time') : 'NULL';
+			var options = {};
+			var err;
 			
-			server.getHistoricalCountByArea(end_time, function(err, data){
+			// Parse start time parameter or use default
+			if ( req.param('start_time') ) {
+				options.start_time = req.param('start_time');
+				options.start_time = moment( req.param('start_time'), moment.ISO_8601 ).unix();
+			} else {
+				options.start_time = Math.floor( Date.now() / 1000 - (60*60*6) ); // Default - 1 hour ago
+			}			
+			// Validate parameter
+			if ( !validateNumberParameter(options.start_time, 0, Date.now()) ) {
+				err = new Error("'start_time' parameter is not valid, it must be an ISO8601 string for a time between 1970 and now");
+				err.status = 400;
+				next(err);
+				return;
+			}
+			
+			// Parse blocks parameter or use default
+			if ( req.param('blocks') ) {
+				options.blocks = Math.floor( Number(req.param('blocks')) );
+			} else {
+				options.blocks = 6; // Default - 6 hours
+			}
+			// Validate parameter
+			if ( !validateNumberParameter(options.blocks, 1, 24) ) {
+				err = new Error("'blocks' parameter is not valid, it must be a number between 1 and 24");
+				err.status = 400;
+				next(err);
+				return;
+			}
+			
+			// Set polygon_layer to default value defined by config
+			options.polygon_layer = config.pg.aggregate_levels[ config.api.aggregates.archive.level ];
+			
+			server.getHistoricalCountByArea(options, function(err, data){
 				if (err) {
 					next(err);
 				} else {
@@ -284,6 +322,23 @@ if (config.data === true){
 		});
 	});
 
+}
+
+// TODO Unit test this function
+
+/**
+ * Validate a parameter which should be a number, optionally with min and max values.
+ * @param {Object} param Parameter to validate - should be of type 'number'
+ * @param {number} min Optional, if supplied minimum value parameter can have and be valid
+ * @param {number} max Optional, if supplied maximum value parameter can have and be valid
+ */
+function validateNumberParameter(param, min, max) {
+	var valid = true;
+	if ( typeof param !== 'number' ) valid = false;
+	if ( isNaN(param) ) valid = false;
+	if ( min && param < min ) valid = false;
+	if ( max && param > max ) valid = false;
+	return valid;
 }
 
 /** 

@@ -19,12 +19,13 @@ Cognicity-server is the NodeJS server module for the CogniCity framework, respon
 * [Memory-Cache](https://github.com/ptarjan/node-cache) version 0.0.5 or compatible
 * [topojson](https://github.com/mbostock/topojson) version 1.6.14 or compatible
 * [winston](https://github.com/flatiron/winston) version 0.8.1 or compatible
+* [moment](https://github.com/moment/moment) version 2.8.4 or compatible
 
 #### Dev Modules
 * [jshint](https://github.com/jshint/node-jshint) version 2.5.8 or compatible
 * [unit.js](http://unitjs.com/) version 1.0.2 or compatible
 * [mocha](http://mochajs.org/) version 2.0.1 or compatible
-* [jsdoc](https://github.com/jsdoc3/jsdoc) version 3.3.0 or compatible
+* [jsdoc](https://github.com/jsdoc3/jsdoc) version 3.2.0 or compatible
 
 #### External Node software
 * [Grunt](http://gruntjs.com)
@@ -59,10 +60,17 @@ You can then run `grunt` if you need to rebuild the build products following cha
 ### Configuration
 Server configuration parameters are stored in a configuration file which is parsed by server.js. See config.js for an example configuration. It is possible to run multiple server instances using different configuration files so long as a unique port is assigned to each instance.
 
+#### API
+* aggregates.archive.level - The key of the aggregate level ('config.pg.aggregate_levels') to use for archive aggregate response data 
+
 #### Postgres connection
 * conString - PostgreSQL connection string (see node-postgres module documenation)[https://github.com/brianc/node-postgres]
 * reconnectionDelay - Delay between reconnection attempts if postgres connection lost
 * reconnectionAttempts - Number of times to attempt to reconnect before dying
+* aggregate_levels - Database tables, keys are the label and values are the table name
+* infrastructure_tbls - Database tables, keys are the label and values are the table name
+* limit - Max number of confirmed reports to return
+* uc_limit - Max number of unconfirmed reports to return
 
 #### Serving web content
 * The `config.public_dir` parameter is the location of public HTML, CSS, JS web pages to serve.
