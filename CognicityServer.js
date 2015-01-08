@@ -295,6 +295,7 @@ CognicityServer.prototype = {
 		var param = {
 			start: Math.floor(Date.now()/1000 - 3600), //60 minutes ago
 			end: Math.floor(Date.now()/1000), // now
+
 			// TODO The default definition for this is duplicated in server.js and here, where's the best place for it to happen?
 			polygon_layer: self.config.pg.aggregate_levels[ Object.keys(self.config.pg.aggregate_levels)[0] ]
 		};
