@@ -227,22 +227,24 @@ if (config.data === true){
 				}
 			});
 		});
-		/*
+
 		//Data route for confirmed timeseries
 		app.get('/'+config.url_prefix+'/data/api/v1/reports/timeseries', function(req, res, next){
 
 			//No options passed
 
-			if (cache.get('timeseries') === null){
-				getReportsTimeseries(opts, function(data){
-					cacheReports('timeseries', data);
-					writeGeoJSON(res, data[0], req.param('format'));
-				});
-			}
-			else {
-				writeGeoJSON(res, cache.get('timeseries')[0], req.param('format'));
-			}
-		});*/
+			server.getReportsTimeSeries({}, function(err, data){
+				if(err) {
+					next(err);
+				}
+				else {
+					// Prepare the response data, cache it, and write out the response
+					var responseData = prepareResponse(res, data[0], req.param('format'));
+					cacheTemporarily(req.originalUrl, responseData);
+					writeResponse(res, responseData);
+				}
+			});
+		});
 
 	if (config.aggregates === true){
 

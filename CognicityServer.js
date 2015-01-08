@@ -233,7 +233,47 @@ CognicityServer.prototype = {
 	},
 
 	getReportsTimeSeries: function(options, callback){
-			console.log('y');
+			var self = this;
+
+			// TODO Define default param values and param parsing in the server
+
+			// Default parameters for this data
+			var param = ({
+				start: Math.floor(Date.now()/1000 - 86400), // 24 hours ago
+				end:  Math.floor(Date.now()/1000) - 3600 // on hour ago
+			});
+
+			for (var key in param){
+				if (options.hasOwnProperty(key)){
+					param[key] = options[key];
+				}
+			}
+
+			//SQL
+			var queryObject = {
+				text: "SELECT array_to_json(array_agg(row_to_json(row))) as data "+
+					"FROM (SELECT to_char(c.stamp::time,'HH24:MI') stamp, c.count as c_count, uc.count as uc_count "+
+					"FROM (SELECT time.stamp, COALESCE(count.count,0) count "+
+					"FROM (select generate_series(date_trunc('hour',to_timestamp($1)), "+
+						"date_trunc('hour',to_timestamp($2)), '1 hours') AT TIME ZONE 'ICT' as stamp) as time "+
+					"LEFT OUTER JOIN (SELECT count(pkey), date_trunc('hour', created_at) AT TIME ZONE 'ICT' tweettime "+
+						"FROM "+self.config.pg.tbl_reports_unconfirmed+" GROUP BY date_trunc('hour', created_at))as count "+
+					"ON count.tweettime = time.stamp ORDER BY time.stamp ASC) as uc, "+
+					"(SELECT time.stamp, COALESCE(count.count,0) count FROM "+
+					"(select generate_series(date_trunc('hour',to_timestamp($1)), "+
+					"date_trunc('hour',to_timestamp($2)), '1 hours') AT TIME ZONE 'ICT' as stamp) as time "+
+					"LEFT OUTER JOIN (SELECT count(pkey), date_trunc('hour', created_at) AT TIME ZONE 'ICT' tweettime "+
+					"FROM "+self.config.pg.tbl_reports+" GROUP BY date_trunc('hour', created_at))as count "+
+					"ON count.tweettime = time.stamp ORDER BY time.stamp ASC) as c WHERE c.stamp = uc.stamp) as row;",
+				values :
+					[
+						param.start,
+						param.end
+					]
+			};
+
+			// Call data query
+			self.dataQuery(queryObject, callback);
 	},
 
 	/**
