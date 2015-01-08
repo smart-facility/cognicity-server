@@ -1,7 +1,7 @@
 {
   "name": "cognicity-server",
   "description": "Web & data server for CogniCity",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "author": "Tomas Holderness",
   "preferGlobal": false,
   "private": true,
