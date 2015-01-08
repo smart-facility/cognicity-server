@@ -42,6 +42,7 @@ config.pg.tbl_reports_unconfirmed = 'tweet_reports_unconfirmed';
 
 // Optional support for report aggregation, required if config.data.aggregates set to true.
 config.pg.aggregate_levels = {
+	'city':'jkt_city_boundary',
 	'subdistrict':'jkt_subdistrict_boundary',
 	'village':'jkt_village_boundary',
 	'rw':'jkt_rw_boundary'
