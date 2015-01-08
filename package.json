@@ -1,18 +1,32 @@
 {
-	"name": "cognicity-server",
-	"description": "Web & data server for CogniCity",
-	"version": "0.0.1",
-	"author": "Tomas Holderness",
-	"preferGlobal":false,
-	"private": true,
-	"dependencies": {
-		"express": "=3.x",
-		"daemonize2": ">=0.4.2",
-		"pg": ">=2.0.0",
-		"memory-cache":">=0.0.5",
-		"topojson": ">=1.6.14"
-	},
-	"engines":{
-		"node":">=0.10.12"
-		}
+  "name": "cognicity-server",
+  "description": "Web & data server for CogniCity",
+  "version": "0.0.1",
+  "author": "Tomas Holderness",
+  "preferGlobal": false,
+  "private": true,
+  "dependencies": {
+    "express": "^3.2.6",
+    "memory-cache": "^0.0.5",
+    "pg": "^2.0.0",
+    "topojson": "^1.6.14",
+    "winston": "^0.8.1",
+    "moment": "^2.8.4"
+  },
+  "devDependencies": {
+    "jsdoc": "^3.2.0",
+    "jshint": "^2.5.8",
+    "mocha": "^2.0.1",
+    "unit.js": "^1.0.2"
+  },
+  "engines": {
+    "node": "^0.10.16"
+  },
+  "scripts": {
+    "test": "npm run-script jshint && npm run-script mocha",
+    "jshint": "jshint config.js server.js CognicityServer.js Validation.js test/testServer.js test/testCognicityServer.js test/testValidation.js",
+    "mocha": "mocha test",
+    "build-docs": "jsdoc -d docs server.js CognicityServer.js Validation.js",
+    "build": "npm run-script test && npm run-script build-docs"
+  }
 }
