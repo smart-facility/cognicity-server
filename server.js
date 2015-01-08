@@ -215,7 +215,7 @@ if (config.data === true){
 		}
 
 		// Get data from db and update cache.
-		server.getCount({start:start}, function(err, data){
+		server.getReportsCount({start:start}, function(err, data){
 			if (err) {
 				next(err);
 			}
@@ -227,13 +227,13 @@ if (config.data === true){
 				}
 			});
 		});
-
+		/*
 		//Data route for confirmed timeseries
 		app.get('/'+config.url_prefix+'/data/api/v1/reports/timeseries', function(req, res, next){
 
 			//No options passed
 
-			if (cache.get('timeseries') == null){
+			if (cache.get('timeseries') === null){
 				getReportsTimeseries(opts, function(data){
 					cacheReports('timeseries', data);
 					writeGeoJSON(res, data[0], req.param('format'));
@@ -242,7 +242,7 @@ if (config.data === true){
 			else {
 				writeGeoJSON(res, cache.get('timeseries')[0], req.param('format'));
 			}
-		});
+		});*/
 
 	if (config.aggregates === true){
 
@@ -351,6 +351,7 @@ if (config.data === true){
 			}
 		});
 	});
+}
 
 /**
  * Store the response in the memory cache with no timeout
