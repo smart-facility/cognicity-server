@@ -60,6 +60,7 @@ You can then run `grunt` if you need to rebuild the build products following cha
 
 ### Configuration
 Server configuration parameters are stored in a configuration file which is parsed by server.js. See config.js for an example configuration. It is possible to run multiple server instances using different configuration files so long as a unique port is assigned to each instance.
+* compression - If true, enable Express compression middleware to gzip responses
 
 #### API
 * aggregates.archive.level - The key of the aggregate level ('config.pg.aggregate_levels') to use for archive aggregate response data 
