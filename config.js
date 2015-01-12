@@ -21,7 +21,7 @@ config.cache_timeout = 60000; // Data cache expiry (1 minute)
 
 config.data = true; // Enable data routes
 config.aggregates = true; // Enable aggregate data outputs
-config.compression = true; // Enable express compression middleware
+config.compression = false; // Enable express compression middleware
 
 // API settings
 config.api = {};
