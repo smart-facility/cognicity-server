@@ -60,6 +60,7 @@ You can then run `grunt` if you need to rebuild the build products following cha
 
 ### Configuration
 Server configuration parameters are stored in a configuration file which is parsed by server.js. See config.js for an example configuration. It is possible to run multiple server instances using different configuration files so long as a unique port is assigned to each instance.
+* compression - If true, enable Express compression middleware to gzip responses
 
 #### API
 * aggregates.archive.level - The key of the aggregate level ('config.pg.aggregate_levels') to use for archive aggregate response data 
@@ -121,6 +122,14 @@ To use this hook, copy the file from 'git-hooks/pre-commit' to '.git/hooks/pre-c
 ```shell
 cp git-hooks/pre-commit .git/hooks/
 ```
+
+#### Release
+
+The release procedure is as follows:
+* Update the CHANGELOG.md file with the newly released version, date, and a high-level overview of changes. Commit the change. 
+* Create a tag in git from the current head of master. The tag version should be the same as the version specified in the package.json file - this is the release version.
+* Update the version in the package.json file and commit the change.
+* Further development is now on the updated version number until the release process begins again.
 
 ### License
 This software is released under the GPLv3 License. See License.txt for details.

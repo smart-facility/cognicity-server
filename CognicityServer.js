@@ -354,7 +354,7 @@ CognicityServer.prototype = {
 									param.polygon_layer + " b " +
 								"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
 									"a.created_at >= to_timestamp($1) AND " +
-									"a.created_at <= to_timestamp($2) " +
+									"a.created_at < to_timestamp($2) " +
 									"GROUP BY b.pkey) as count " +
 							"ON (p1.pkey = count.pkey) " +
 						") as c2 " +

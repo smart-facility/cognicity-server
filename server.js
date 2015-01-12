@@ -109,6 +109,11 @@ var winstonStream = {
     }
 };
 
+if ( config.compression ) {
+	// Enable gzip compression using defaults
+	app.use( express.compress() );
+}
+
 // Setup express logger
 app.use( express.logger( { stream : winstonStream } ) );
 
