@@ -9,3 +9,6 @@ CogniCity
 
 ### 1.0.1 - 09/01/2015
 * Added analytics support
+
+### 1.0.2 - 12/01/2015
+* Added http compression option
