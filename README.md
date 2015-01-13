@@ -124,6 +124,16 @@ To use this hook, copy the file from 'git-hooks/pre-commit' to '.git/hooks/pre-c
 cp git-hooks/pre-commit .git/hooks/
 ```
 
+#### Documentation
+
+To build the JSDoc documentation into the folder 'docs', run the following npm script:
+
+```shell
+npm run-script build-docs
+```
+
+This runs JSHint using the configuration options in .jshintrc and the command from package.json.
+
 #### Test Coverage
 
 To build test code coverage documentation, run the following npm script:
