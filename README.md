@@ -26,6 +26,7 @@ Cognicity-server is the NodeJS server module for the CogniCity framework, respon
 * [unit.js](http://unitjs.com/) version 1.0.2 or compatible
 * [mocha](http://mochajs.org/) version 2.0.1 or compatible
 * [jsdoc](https://github.com/jsdoc3/jsdoc) version 3.2.0 or compatible
+* [istanbul](https://github.com/gotwarlost/istanbul) version 0.3.5 or compatible
 
 #### External Node software
 * [Grunt](http://gruntjs.com)
@@ -122,6 +123,16 @@ To use this hook, copy the file from 'git-hooks/pre-commit' to '.git/hooks/pre-c
 ```shell
 cp git-hooks/pre-commit .git/hooks/
 ```
+
+#### Test Coverage
+
+To build test code coverage documentation, run the following npm script:
+
+```shell
+npm run-script coverage
+```
+
+This will run istanbul code coverage over the full mocha test harness and produce HTML documentation in the directory `coverage`.
 
 #### Release
 
