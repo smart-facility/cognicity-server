@@ -1,5 +1,8 @@
 'use strict';
 
+//Error creation convenience methods
+var Errors = require('./Errors.js');
+
 /**
  * A CognicityServer object queries against the cognicity database and returns data to be returned
  * to the client via the REST service.
@@ -63,7 +66,7 @@ CognicityServer.prototype = {
 			if (err){
 				self.logger.error("dataQuery: " + JSON.stringify(queryObject) + ", " + err);
 				done();
-				callback( new Error('Database connection error') );
+				callback( Errors.createErrorWithStatus('Database connection error', 500) );
 				return;
 			}
 
@@ -71,7 +74,7 @@ CognicityServer.prototype = {
 				if (err){
 					done();
 					self.logger.error( "dataQuery: Database query failed, " + err.message + ", queryObject=" + JSON.stringify(queryObject) );
-					callback( new Error('Database query error') );
+					callback( Errors.createErrorWithStatus('Database query error', 500) );
 				} else if (result && result.rows){
 					self.logger.debug( "dataQuery: " + result.rows.length + " rows returned" );
 					done();
@@ -79,7 +82,7 @@ CognicityServer.prototype = {
 				} else {
 					// TODO Can we ever get to this point?
 					done();
-					callback( new Error('Unknown query error, queryObject=' + JSON.stringify(queryObject) ) );
+					callback( Errors.createErrorWithStatus('Unknown query error, queryObject=' + JSON.stringify(queryObject), 500 ) );
 				}
 			});
 		});
@@ -379,8 +382,6 @@ CognicityServer.prototype = {
 	 */
 	getHistoricalCountByArea: function(options, callback){
 		var self = this;
-
-		// TODO There is 1 second of overlap in the start and end times - we should fix this
 
 		// Setup variables so we can do a count-by-area query for each block and join the responses together
 		var blocksQueried = 0;

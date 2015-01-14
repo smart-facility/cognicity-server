@@ -29,6 +29,8 @@ var logger = require('winston');
 var CognicityServer = require('./CognicityServer.js');
 // Validation module, parameter validation functions
 var Validation = require('./Validation.js');
+// Error creation convenience methods
+var Errors = require('./Errors.js');
 // moment module, JS date/time manipulation library
 var moment = require('moment');
 
@@ -298,7 +300,6 @@ if (config.data === true){
 		// Data route for historical aggregate archive
 		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/archive', function(req, res, next){
 			var options = {};
-			var err;
 
 			// Parse start time parameter or use default
 			if ( req.param('start_time') ) {
@@ -309,9 +310,7 @@ if (config.data === true){
 			}
 			// Validate parameter
 			if ( !validation.validateNumberParameter(options.start_time, 0, Date.now()) ) {
-				err = new Error("'start_time' parameter is not valid, it must be an ISO8601 string for a time between 1970 and now");
-				err.status = 400;
-				next(err);
+				next( Errors.createErrorWithStatus("'start_time' parameter is not valid, it must be an ISO8601 string for a time between 1970 and now", 400) );
 				return;
 			}
 
@@ -323,9 +322,7 @@ if (config.data === true){
 			}
 			// Validate parameter
 			if ( !validation.validateNumberParameter(options.blocks, 1, 24) ) {
-				err = new Error("'blocks' parameter is not valid, it must be a number between 1 and 24");
-				err.status = 400;
-				next(err);
+				next( Errors.createErrorWithStatus("'blocks' parameter is not valid, it must be a number between 1 and 24", 400) );
 				return;
 			}
 
