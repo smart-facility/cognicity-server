@@ -29,8 +29,6 @@ var logger = require('winston');
 var CognicityServer = require('./CognicityServer.js');
 // Validation module, parameter validation functions
 var Validation = require('./Validation.js');
-// Error creation convenience methods
-var Errors = require('./Errors.js');
 // moment module, JS date/time manipulation library
 var moment = require('moment');
 
@@ -256,7 +254,7 @@ if (config.data === true){
 
 		// Data route for spatio-temporal aggregates
 		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/live', function(req, res, next){
-			//Organise parameter options
+			// Organise parameter options
 			var tbl;
 			if (req.query.level && config.pg.aggregate_levels[req.query.level]){
 				tbl = config.pg.aggregate_levels[req.query.level];
@@ -267,18 +265,16 @@ if (config.data === true){
 			logger.debug("Parsed option 'tbl' as '"+tbl+"'");
 
 			var start;
-			// 3 hours
 			if (req.query.hours && req.query.hours === "3"){
+				// 3 hours
 				logger.debug("Parsed option 'hours' as '3'");
 				start = Math.floor(Date.now()/1000 - 10800);
-			}
-			// 6 hours
-			else if (req.query.hours && req.query.hours === "6"){
+			} else if (req.query.hours && req.query.hours === "6"){
+				// 6 hours
 				logger.debug("Parsed option 'hours' as '6'");
 				start = Math.floor(Date.now()/1000 - 21600);
-			}
-			// Default to one hour
-			else {
+			} else {
+				// Default to one hour
 				logger.debug("Parsed option 'hours' as '1'");
 				start = Math.floor(Date.now()/1000 - 3600);
 			}
@@ -309,7 +305,7 @@ if (config.data === true){
 			}
 			// Validate parameter
 			if ( !Validation.validateNumberParameter(options.start_time, 0, Date.now()) ) {
-				next( Errors.createErrorWithStatus("'start_time' parameter is not valid, it must be an ISO8601 string for a time between 1970 and now", 400) );
+				next( createErrorWithStatus("'start_time' parameter is not valid, it must be an ISO8601 string for a time between 1970 and now", 400) );
 				return;
 			}
 
@@ -321,7 +317,7 @@ if (config.data === true){
 			}
 			// Validate parameter
 			if ( !Validation.validateNumberParameter(options.blocks, 1, 24) ) {
-				next( Errors.createErrorWithStatus("'blocks' parameter is not valid, it must be a number between 1 and 24", 400) );
+				next( createErrorWithStatus("'blocks' parameter is not valid, it must be a number between 1 and 24", 400) );
 				return;
 			}
 
@@ -378,6 +374,18 @@ function cacheTemporarily(cacheKey, data){
 app.use(function(req, res, next){
   res.send('Error 404 - Page not found', 404);
 });
+
+/**
+ * Create a JavaScript Error object with the supplied status
+ * @param message Error message
+ * @param status HTTP error status code
+ * @returns New Error object
+ */
+function createErrorWithStatus(message, status) {
+	var err = new Error(message);
+	err.status = status;
+	return err;
+}
 
 // Error handler function
 app.use(function(err, req, res, next){
