@@ -26,4 +26,4 @@ Validation.prototype = {
 		
 };
 
-module.exports = Validation;
+module.exports = new Validation();

@@ -102,7 +102,6 @@ pg.connect(config.pg.conString, function(err, client, done){
 
 // Create instances of CognicityServer and Validation
 var server = new CognicityServer(config, logger, pg); // Variable needs to be lowercase or jsdoc output is not correctly linked
-var validation = new Validation();
 
 // Winston stream function we can plug in to express so we can capture its logs along with our own
 var winstonStream = {
@@ -309,7 +308,7 @@ if (config.data === true){
 				options.start_time = Math.floor( Date.now() / 1000 - (60*60*6) ); // Default - 6 hours ago
 			}
 			// Validate parameter
-			if ( !validation.validateNumberParameter(options.start_time, 0, Date.now()) ) {
+			if ( !Validation.validateNumberParameter(options.start_time, 0, Date.now()) ) {
 				next( Errors.createErrorWithStatus("'start_time' parameter is not valid, it must be an ISO8601 string for a time between 1970 and now", 400) );
 				return;
 			}
@@ -321,7 +320,7 @@ if (config.data === true){
 				options.blocks = 6; // Default - 6 blocks
 			}
 			// Validate parameter
-			if ( !validation.validateNumberParameter(options.blocks, 1, 24) ) {
+			if ( !Validation.validateNumberParameter(options.blocks, 1, 24) ) {
 				next( Errors.createErrorWithStatus("'blocks' parameter is not valid, it must be a number between 1 and 24", 400) );
 				return;
 			}
