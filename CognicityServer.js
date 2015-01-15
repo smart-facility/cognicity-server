@@ -8,9 +8,9 @@ var Validation = require('./Validation.js');
  * to the client via the REST service.
  * @constructor
  * @this {CognicityServer}
- * @param {Object} config The server configuration object loaded from the configuration file
- * @param {Object} logger Winston logger instance
- * @param {Object} pg Postgres 'pg' module instance
+ * @param {object} config The server configuration object loaded from the configuration file
+ * @param {object} logger Winston logger instance
+ * @param {object} pg Postgres 'pg' module instance
  */
 var CognicityServer = function(
 	config,
@@ -27,35 +27,37 @@ CognicityServer.prototype = {
 
 	/**
 	 * Server configuration object loaded from the configuration file
-	 * @type {Object}
+	 * @type {object}
 	 */
 	config: null,
 
 	/**
 	 * Winston logger instance
-	 * @type {Object}
+	 * @type {object}
 	 */
 	logger: null,
 
 	/**
 	 * 'pg' module Postgres interface instance
-	 * @type {Object}
+	 * @type {object}
 	 */
 	pg: null,
 
 	/**
 	 * DB query callback
-	 * @callback dataQueryCallback
+	 * @callback DataQueryCallback
 	 * @param {Error} err An error instance describing the error that occurred, or null if no error
-	 * @param {Object} data Response data object which is 'result.rows' from the pg module response
+	 * @param {object} data Response data object which is 'result.rows' from the pg module response
 	 */
 
 	/**
 	 * Perform a query against the database using the parameterized query in the queryObject.
 	 * Call the callback with error information or result information.
 	 *
-	 * @param {Object} queryObject Query object for parameterized postgres query
-	 * @param {dataQueryCallback} callback Callback function for handling error or response data
+	 * @param {object} queryObject Query object for parameterized postgres query
+	 * @param {string} queryObject.text The SQL query text for the parameterized query
+	 * @param {Array} queryObject.values Values for the parameterized query
+	 * @param {DataQueryCallback} callback Callback function for handling error or response data
 	 */
 	dataQuery: function(queryObject, callback){
 		var self = this;
@@ -91,8 +93,12 @@ CognicityServer.prototype = {
 	/**
 	 * Get confirmed reports from the database.
 	 * Call the callback function with error or response data.
-	 * @param {Object} options Configuration options for the query
-	 * @param {dataQueryCallback} callback Callback for handling error or response data
+	 * @param {object} options Configuration options for the query
+	 * @param {number} options.start Unix timestamp for start of query period
+	 * @param {number} options.end Unix timestamp for end of query period
+	 * @param {string} options.tbl_reports Database table for confirmed reports
+	 * @param {?number} options.limit Number of results to limit to, or null for all
+	 * @param {DataQueryCallback} callback Callback for handling error or response data
 	 */
 	getReports: function(options, callback){
 		var self = this;
@@ -140,8 +146,12 @@ CognicityServer.prototype = {
 	/**
 	 * Get unconfirmed reports from the database.
 	 * Call the callback function with error or response data.
-	 * @param {Object} options Configuration options for the query
-	 * @param {dataQueryCallback} callback Callback for handling error or response data
+	 * @param {object} options Configuration options for the query
+	 * @param {number} options.start Unix timestamp for start of query period
+	 * @param {number} options.end Unix timestamp for end of query period
+	 * @param {string} options.tbl_reports_unconfirmed Database table for unconfirmed reports
+	 * @param {?number} options.limit Number of results to limit to, or null for all
+	 * @param {DataQueryCallback} callback Callback for handling error or response data
 	 */
 	getUnConfirmedReports: function(options, callback){
 		var self = this;
@@ -185,10 +195,14 @@ CognicityServer.prototype = {
 	},
 
 	/**
-	* Count confirmed unconfirmed reports within a given number of hours
+	* Count confirmed unconfirmed reports within a given number of hours.
 	* Call the callback function with error or response data.
-	* @param {Object} options Configuration options for the query
-	* @param {dataQueryCallback} callback Callback for handling error or response data
+	* @param {object} options Configuration options for the query
+	* @param {number} options.start Unix timestamp for start of query period
+	* @param {number} options.end Unix timestamp for end of query period
+	* @param {string} options.tbl_reports Database table for confirmed reports
+	* @param {string} options.tbl_reports_unconfirmed Database table for unconfirmed reports
+	* @param {DataQueryCallback} callback Callback for handling error or response data
 	*/
 	getReportsCount: function(options, callback){
 		var self = this;
@@ -223,6 +237,16 @@ CognicityServer.prototype = {
 		self.dataQuery(queryObject, callback);
 	},
 
+	/**
+	* Get a time series of report counts at hourly intervals over the specified period.
+	* Call the callback function with error or response data.
+	* @param {object} options Configuration options for the query
+	* @param {number} options.start Unix timestamp for start of query period
+	* @param {number} options.end Unix timestamp for end of query period
+	* @param {string} options.tbl_reports Database table for confirmed reports
+	* @param {string} options.tbl_reports_unconfirmed Database table for unconfirmed reports
+	* @param {DataQueryCallback} callback Callback for handling error or response data
+	*/
 	getReportsTimeSeries: function(options, callback){
 		var self = this;
 		
@@ -264,10 +288,15 @@ CognicityServer.prototype = {
 	},
 
 	/**
-	 * Count unconfirmed reports within given polygon layer (e.g. wards)
+	 * Count reports within given polygon layer (e.g. wards).
 	 * Call the callback function with error or response data.
-	 * @param {Object} options Configuration options for the query
-	 * @param {dataQueryCallback} callback Callback for handling error or response data
+	 * @param {object} options Configuration options for the query
+	 * @param {number} options.start Unix timestamp for start of query period
+	 * @param {number} options.end Unix timestamp for end of query period
+	 * @param {string} options.polygon_layer Database table for layer of geo data
+	 * @param {string} options.point_layer Database table for confirmed reports
+	 * @param {string} options.point_layer_uc Database table for unconfirmed reports
+	 * @param {DataQueryCallback} callback Callback for handling error or response data
 	 */
 	getCountByArea: function(options, callback){
 		var self = this;
@@ -351,9 +380,14 @@ CognicityServer.prototype = {
 	},
 
 	/**
-	 * Sum of confirmed and unconfirmed aggregates from archive
-	 * @param {Object} options Options object, containing start_time, blocks and polygon_layer properties
-	 * @param {dataQueryCallback} callback Callback for handling error or response data
+	 * Get a series of report counts by polygon layer for a historical time period.
+	 * @param {object} options Configuration options for the query 
+	 * @param {number} options.start_time Unix timestamp for start of query period
+	 * @param {number} options.blocks Number of hourly blocks to return
+	 * @param {string} options.polygon_layer Database table for layer of geo data
+	 * @param {string} options.point_layer Database table for confirmed reports
+	 * @param {string} options.point_layer_uc Database table for unconfirmed reports
+	 * @param {DataQueryCallback} callback Callback for handling error or response data
 	 */
 	getHistoricalCountByArea: function(options, callback){
 		var self = this;
@@ -420,10 +454,10 @@ CognicityServer.prototype = {
 	},
 
 	/**
-	 * Get infrastructure details as JSON/GeoJSON response
-	 * @param {Object} options Options object for the server query
-	 * @param {String} options.infrastructureTableName Table name of the infrastructure table to query
-	 * @param {dataQueryCallback} callback Callback for handling error or response data
+	 * Get infrastructure details as JSON/GeoJSON response.
+	 * @param {object} options Options object for the server query
+	 * @param {string} options.infrastructureTableName Table name of the infrastructure table to query
+	 * @param {DataQueryCallback} callback Callback for handling error or response data
 	 */
 	getInfrastructure: function(options, callback){
 		var self = this;

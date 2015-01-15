@@ -256,28 +256,28 @@ if (config.data === true){
 		});
 	});
 
-		//Data route for confirmed timeseries
-		app.get('/'+config.url_prefix+'/data/api/v1/reports/timeseries', function(req, res, next){
-			// Construct options
-			var options = {
-				tbl_reports: config.pg.tbl_reports,
-				tbl_reports_unconfirmed: config.pg.tbl_reports_unconfirmed,
-				start: Math.floor(Date.now()/1000 - 86400), // 24 hours ago
-				end: Math.floor(Date.now()/1000) - 3600 // 1 hour ago
-			};
+	//Data route for confirmed timeseries
+	app.get('/'+config.url_prefix+'/data/api/v1/reports/timeseries', function(req, res, next){
+		// Construct options
+		var options = {
+			tbl_reports: config.pg.tbl_reports,
+			tbl_reports_unconfirmed: config.pg.tbl_reports_unconfirmed,
+			start: Math.floor(Date.now()/1000 - 86400), // 24 hours ago
+			end: Math.floor(Date.now()/1000) - 3600 // 1 hour ago
+		};
 
-			server.getReportsTimeSeries(options, function(err, data){
-				if(err) {
-					next(err);
-				}
-				else {
-					// Prepare the response data, cache it, and write out the response
-					var responseData = prepareResponse(res, data[0], req.param('format'));
-					cacheTemporarily(req.originalUrl, responseData);
-					writeResponse(res, responseData);
-				}
-			});
+		server.getReportsTimeSeries(options, function(err, data){
+			if(err) {
+				next(err);
+			}
+			else {
+				// Prepare the response data, cache it, and write out the response
+				var responseData = prepareResponse(res, data[0], req.param('format'));
+				cacheTemporarily(req.originalUrl, responseData);
+				writeResponse(res, responseData);
+			}
 		});
+	});
 
 	if (config.aggregates === true){
 
@@ -419,8 +419,8 @@ if (config.data === true){
 
 /**
  * Store the response in the memory cache with no timeout
- * @param {String} cacheKey Key for the cache entry
- * @param {Object} data Data to store in the cache
+ * @param {string} cacheKey Key for the cache entry
+ * @param {object} data Data to store in the cache
  */
 function cachePermanently(cacheKey, data){
 	cache.put(cacheKey, data);
@@ -428,8 +428,8 @@ function cachePermanently(cacheKey, data){
 
 /**
  * Store the response the memory cache with timeout
- * @param {String} cacheKey Key for the cache entry
- * @param {Object} data Data to store in the cache
+ * @param {string} cacheKey Key for the cache entry
+ * @param {object} data Data to store in the cache
  */
 function cacheTemporarily(cacheKey, data){
 	cache.put(cacheKey, data, config.cache_timeout);
@@ -442,9 +442,9 @@ app.use(function(req, res, next){
 
 /**
  * Create a JavaScript Error object with the supplied status
- * @param message Error message
- * @param status HTTP error status code
- * @returns New Error object
+ * @param {string} message Error message
+ * @param {number} status HTTP error status code
+ * @returns {Error} New Error object
  */
 function createErrorWithStatus(message, status) {
 	var err = new Error(message);
@@ -464,14 +464,21 @@ app.use(function(err, req, res, next){
 });
 
 /**
+ * @typedef {object} HttpResponse
+ * @property {number} code HTTP Response code
+ * @property {object} headers Object containing HTTP headers as key/value pairs
+ * @property {string} body Response body
+ */
+
+/**
  * Prepare the response data for sending to the client.
  * Will optionally format the data as topojson if this is requested via the 'format' parameter.
  * Returns a response object containing everything needed to send a response which can be sent or cached.
  *
- * @param {Object} res The express 'res' response object
- * @param {Object} data The data we're going to return to the client
- * @param {String} format Optional format parameter for the response data; either nothing or 'topojson'
- * @returns {Object} Response object with code, headers and body properties.
+ * @param {object} res The express 'res' response object
+ * @param {object} data The data we're going to return to the client
+ * @param {string=} format Format parameter for the response data; either nothing or 'topojson'
+ * @returns {HttpResponse} HTTP response object
  */
 function prepareResponse(res, data, format){
 	var responseData = {};
@@ -503,8 +510,8 @@ function prepareResponse(res, data, format){
  * Write a response object to the client using express.
  * Will write the response code, response headers and response body, and then end the response stream.
  *
- * @param {Object} res Express 'res' response object
- * @param {Object} responseData The response data object with code, headers and body properties.
+ * @param {object} res Express 'res' response object
+ * @param {HttpResponse} HTTP response object
  */
 function writeResponse(res, responseData) {
 	res.writeHead( responseData.code, responseData.headers );

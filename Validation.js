@@ -11,9 +11,9 @@ Validation.prototype = {
 	
 	/**
 	 * Validate a parameter which should be a number, optionally with min and max values.
-	 * @param {Object} param Parameter to validate - should be of type 'number'
-	 * @param {number} min Optional, if supplied minimum value parameter can have and be valid
-	 * @param {number} max Optional, if supplied maximum value parameter can have and be valid
+	 * @param {number} param Parameter to validate
+	 * @param {number=} min Minimum value parameter can have and be valid
+	 * @param {number=} max Maximum value parameter can have and be valid
 	 */
 	validateNumberParameter: function(param, min, max) {
 		var valid = true;
