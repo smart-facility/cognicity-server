@@ -86,7 +86,7 @@ describe( "dataQuery", function() {
 	});
 });
 
-describe( "getHistoricalCountByArea", function() {
+describe( "getHistoricalCountByArea processing", function() {
 	var oldGetCountByArea;
 	
 	var getCountByAreaCalledTimes;
@@ -139,7 +139,9 @@ describe( "getHistoricalCountByArea", function() {
 		options = {
 			blocks: 3,
 			start_time: 441860645, // 19840102T030405Z
-			polygon_layer: 'protea'
+			polygon_layer: 'protea',
+			point_layer_uc: 'pandorea',
+			point_layer: 'hibiscus'
 		};
 	});
 	
@@ -214,6 +216,523 @@ describe( "getHistoricalCountByArea", function() {
 
 	after( function(){
 		server.getCountByArea = oldGetCountByArea;
+	});
+});
+
+describe( "getReports validation", function() {
+	var oldDataQuery;
+	var dataQueryCalled;
+	var callbackErr;
+	var callbackData;
+	var callbackDataResponse = 'blue';
+	
+	function createOptions(start,end,tbl_reports,limit){
+		return {
+			start: start,
+			end: end,
+			tbl_reports: tbl_reports,
+			limit: limit
+		};
+	} 
+	
+	function callback(err,data) {
+		callbackErr = err;
+		callbackData = data;
+	}
+	
+	before( function() {	
+		oldDataQuery = server.dataQuery; 
+		server.dataQuery = function(queryOptions, callback){
+			dataQueryCalled = true;
+			callback(null,callbackDataResponse);
+		};
+	});
+	
+	beforeEach( function() {
+		dataQueryCalled = false;
+		callbackErr = null;
+		callbackData = null;
+	});
+	
+	it( "should call the database if parameters are valid", function() {
+		server.getReports( createOptions(1, 2, 'red', 5), callback );
+		test.bool( dataQueryCalled ).isTrue();
+		test.value( callbackErr ).isNull();
+		test.value( callbackData ).is( callbackDataResponse );
+	});
+
+	it( "should throw an error with an invalid 'start' parameter", function() {
+		server.getReports( createOptions('green', 2, 'red', 5), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'end' parameter", function() {
+		server.getReports( createOptions(1, 'orange', 'red', 5), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'tbl_reports' parameter", function() {
+		server.getReports( createOptions(1, 2, null, 5), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'limit' parameter", function() {
+		server.getReports( createOptions(1, 2, 'red', undefined), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	after( function(){
+		server.dataQuery = oldDataQuery;
+	});
+});
+
+describe( "getUnConfirmedReports validation", function() {
+	var oldDataQuery;
+	var dataQueryCalled;
+	var callbackErr;
+	var callbackData;
+	var callbackDataResponse = 'parrot';
+	
+	function createOptions(start,end,tbl_reports_unconfirmed,limit){
+		return {
+			start: start,
+			end: end,
+			tbl_reports_unconfirmed: tbl_reports_unconfirmed,
+			limit: limit
+		};
+	} 
+	
+	function callback(err,data) {
+		callbackErr = err;
+		callbackData = data;
+	}
+	
+	before( function() {	
+		oldDataQuery = server.dataQuery; 
+		server.dataQuery = function(queryOptions, callback){
+			dataQueryCalled = true;
+			callback(null,callbackDataResponse);
+		};
+	});
+	
+	beforeEach( function() {
+		dataQueryCalled = false;
+		callbackErr = null;
+		callbackData = null;
+	});
+	
+	it( "should call the database if parameters are valid", function() {
+		server.getUnConfirmedReports( createOptions(1, 2, 'magpie', 5), callback );
+		test.bool( dataQueryCalled ).isTrue();
+		test.value( callbackErr ).isNull();
+		test.value( callbackData ).is( callbackDataResponse );
+	});
+
+	it( "should throw an error with an invalid 'start' parameter", function() {
+		server.getUnConfirmedReports( createOptions('cockatoo', 2, 'magpie', 5), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'end' parameter", function() {
+		server.getUnConfirmedReports( createOptions(1, 'lorikeet', 'magpie', 5), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'tbl_reports_unconfirmed' parameter", function() {
+		server.getUnConfirmedReports( createOptions(1, 2, null, 5), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'limit' parameter", function() {
+		server.getUnConfirmedReports( createOptions(1, 2, 'magpie', undefined), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	after( function(){
+		server.dataQuery = oldDataQuery;
+	});
+});
+
+describe( "getReportsCount validation", function() {
+	var oldDataQuery;
+	var dataQueryCalled;
+	var callbackErr;
+	var callbackData;
+	var callbackDataResponse = 'raspberry';
+	
+	function createOptions(start,end,tbl_reports_unconfirmed,tbl_reports){
+		return {
+			start: start,
+			end: end,
+			tbl_reports_unconfirmed: tbl_reports_unconfirmed,
+			tbl_reports: tbl_reports
+		};
+	} 
+	
+	function callback(err,data) {
+		callbackErr = err;
+		callbackData = data;
+	}
+	
+	before( function() {	
+		oldDataQuery = server.dataQuery; 
+		server.dataQuery = function(queryOptions, callback){
+			dataQueryCalled = true;
+			callback(null,callbackDataResponse);
+		};
+	});
+	
+	beforeEach( function() {
+		dataQueryCalled = false;
+		callbackErr = null;
+		callbackData = null;
+	});
+	
+	it( "should call the database if parameters are valid", function() {
+		server.getReportsCount( createOptions(1, 2, 'strawberry', 'blueberry'), callback );
+		test.bool( dataQueryCalled ).isTrue();
+		test.value( callbackErr ).isNull();
+		test.value( callbackData ).is( callbackDataResponse );
+	});
+
+	it( "should throw an error with an invalid 'start' parameter", function() {
+		server.getReportsCount( createOptions('cherry', 2, 'strawberry', 'blueberry'), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'end' parameter", function() {
+		server.getReportsCount( createOptions(1, 'blackberry', 'strawberry', 'blueberry'), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'tbl_reports_unconfirmed' parameter", function() {
+		server.getReportsCount( createOptions(1, 2, null, 'blueberry'), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'tbl_reports' parameter", function() {
+		server.getReportsCount( createOptions(1, 2, 'strawberry', null), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	after( function(){
+		server.dataQuery = oldDataQuery;
+	});
+});
+
+describe( "getReportsTimeSeries validation", function() {
+	var oldDataQuery;
+	var dataQueryCalled;
+	var callbackErr;
+	var callbackData;
+	var callbackDataResponse = 'galaxy';
+	
+	function createOptions(start,end,tbl_reports_unconfirmed,tbl_reports){
+		return {
+			start: start,
+			end: end,
+			tbl_reports_unconfirmed: tbl_reports_unconfirmed,
+			tbl_reports: tbl_reports
+		};
+	} 
+	
+	function callback(err,data) {
+		callbackErr = err;
+		callbackData = data;
+	}
+	
+	before( function() {	
+		oldDataQuery = server.dataQuery; 
+		server.dataQuery = function(queryOptions, callback){
+			dataQueryCalled = true;
+			callback(null,callbackDataResponse);
+		};
+	});
+	
+	beforeEach( function() {
+		dataQueryCalled = false;
+		callbackErr = null;
+		callbackData = null;
+	});
+	
+	it( "should call the database if parameters are valid", function() {
+		server.getReportsTimeSeries( createOptions(1, 2, 'nebula', 'star'), callback );
+		test.bool( dataQueryCalled ).isTrue();
+		test.value( callbackErr ).isNull();
+		test.value( callbackData ).is( callbackDataResponse );
+	});
+
+	it( "should throw an error with an invalid 'start' parameter", function() {
+		server.getReportsTimeSeries( createOptions('planet', 2, 'nebula', 'star'), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'end' parameter", function() {
+		server.getReportsTimeSeries( createOptions(1, 'blackhole', 'nebula', 'star'), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'tbl_reports_unconfirmed' parameter", function() {
+		server.getReportsTimeSeries( createOptions(1, 2, null, 'star'), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'tbl_reports' parameter", function() {
+		server.getReportsTimeSeries( createOptions(1, 2, 'nebula', null), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	after( function(){
+		server.dataQuery = oldDataQuery;
+	});
+});
+
+describe( "getCountByArea validation", function() {
+	var oldDataQuery;
+	var dataQueryCalled;
+	var callbackErr;
+	var callbackData;
+	var callbackDataResponse = 'hydrogen';
+	
+	function createOptions(start,end,polygon_layer,point_layer_uc,point_layer){
+		return {
+			start: start,
+			end: end,
+			polygon_layer: polygon_layer,
+			point_layer_uc: point_layer_uc,
+			point_layer: point_layer
+		};
+	} 
+	
+	function callback(err,data) {
+		callbackErr = err;
+		callbackData = data;
+	}
+	
+	before( function() {	
+		oldDataQuery = server.dataQuery; 
+		server.dataQuery = function(queryOptions, callback){
+			dataQueryCalled = true;
+			callback(null,callbackDataResponse);
+		};
+	});
+	
+	beforeEach( function() {
+		dataQueryCalled = false;
+		callbackErr = null;
+		callbackData = null;
+	});
+	
+	it( "should call the database if parameters are valid", function() {
+		server.getCountByArea( createOptions(1, 2, 'helium', 'strontium', 'neon'), callback );
+		test.bool( dataQueryCalled ).isTrue();
+		test.value( callbackErr ).isNull();
+		test.value( callbackData ).is( callbackDataResponse );
+	});
+
+	it( "should throw an error with an invalid 'start' parameter", function() {
+		server.getCountByArea( createOptions('mercury', 2, 'helium', 'strontium', 'neon'), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'end' parameter", function() {
+		server.getCountByArea( createOptions(1, 'platinum', 'helium', 'strontium', 'neon'), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'polygon_layer' parameter", function() {
+		server.getCountByArea( createOptions(1, 2, null, 'strontium', 'neon'), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'point_layer_uc' parameter", function() {
+		server.getCountByArea( createOptions(1, 2, 'helium', null, 'neon'), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+	
+	it( "should throw an error with an invalid 'point_layer' parameter", function() {
+		server.getCountByArea( createOptions(1, 2, 'helium', 'strontium', null), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	after( function(){
+		server.dataQuery = oldDataQuery;
+	});
+});
+
+describe( "getHistoricalCountByArea validation", function() {
+	var oldGetCountByArea;
+	var getCountByAreaCalled;
+	var callbackErr;
+	var callbackData;
+	var callbackDataResponse = ['ale'];
+	
+	function createOptions(start_time,blocks,polygon_layer,point_layer_uc,point_layer){
+		return {
+			start_time: start_time,
+			blocks: blocks,
+			polygon_layer: polygon_layer,
+			point_layer_uc: point_layer_uc,
+			point_layer: point_layer
+		};
+	} 
+	
+	function callback(err,data) {
+		callbackErr = err;
+		callbackData = data;
+	}
+	
+	before( function() {	
+		oldGetCountByArea = server.getCountByArea; 
+		server.getCountByArea = function(queryOptions, callback){
+			getCountByAreaCalled = true;
+			callback(null,callbackDataResponse);
+		};
+	});
+	
+	beforeEach( function() {
+		getCountByAreaCalled = false;
+		callbackErr = null;
+		callbackData = null;
+	});
+	
+	it( "should call the database if parameters are valid", function() {
+		server.getHistoricalCountByArea( createOptions(1, 1, 'mead', 'porter', 'lager'), callback );
+		test.bool( getCountByAreaCalled ).isTrue();
+		test.value( callbackErr ).isNull();
+		test.value( callbackData[0].blocks[0] ).is( callbackDataResponse[0] );
+	});
+
+	it( "should throw an error with an invalid 'start_time' parameter", function() {
+		server.getHistoricalCountByArea( createOptions('gin', 1, 'mead', 'porter', 'lager'), callback );
+		test.bool( getCountByAreaCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'blocks' parameter", function() {
+		server.getHistoricalCountByArea( createOptions(1, 'whiskey', 'mead', 'porter', 'lager'), callback );
+		test.bool( getCountByAreaCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'polygon_layer' parameter", function() {
+		server.getHistoricalCountByArea( createOptions(1, 1, null, 'porter', 'lager'), callback );
+		test.bool( getCountByAreaCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'point_layer_uc' parameter", function() {
+		server.getHistoricalCountByArea( createOptions(1, 1, 'mead', null, 'lager'), callback );
+		test.bool( getCountByAreaCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'point_layer' parameter", function() {
+		server.getHistoricalCountByArea( createOptions(1, 1, 'mead', 'porter', null), callback );
+		test.bool( getCountByAreaCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	after( function(){
+		server.getCountByArea = oldGetCountByArea;
+	});
+});
+
+describe( "getInfrastructure validation", function() {
+	var oldDataQuery;
+	var dataQueryCalled;
+	var callbackErr;
+	var callbackData;
+	var callbackDataResponse = 'water';
+	
+	function createOptions(infrastructureTableName){
+		return {
+			infrastructureTableName: infrastructureTableName
+		};
+	} 
+	
+	function callback(err,data) {
+		callbackErr = err;
+		callbackData = data;
+	}
+	
+	before( function() {	
+		oldDataQuery = server.dataQuery; 
+		server.dataQuery = function(queryOptions, callback){
+			dataQueryCalled = true;
+			callback(null,callbackDataResponse);
+		};
+	});
+	
+	beforeEach( function() {
+		dataQueryCalled = false;
+		callbackErr = null;
+		callbackData = null;
+	});
+	
+	it( "should call the database if parameters are valid", function() {
+		server.getInfrastructure( createOptions('land'), callback );
+		test.bool( dataQueryCalled ).isTrue();
+		test.value( callbackErr ).isNull();
+		test.value( callbackData ).is( callbackDataResponse );
+	});
+
+	it( "should throw an error with an invalid 'start' parameter", function() {
+		server.getInfrastructure( createOptions(null), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	after( function(){
+		server.dataQuery = oldDataQuery;
 	});
 });
 

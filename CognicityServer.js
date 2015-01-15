@@ -1,5 +1,8 @@
 'use strict';
 
+// Validation module, parameter validation functions
+var Validation = require('./Validation.js');
+
 /**
  * A CognicityServer object queries against the cognicity database and returns data to be returned
  * to the client via the REST service.
@@ -94,20 +97,15 @@ CognicityServer.prototype = {
 	getReports: function(options, callback){
 		var self = this;
 
-		// TODO Define default param values and param parsing in the server
-
-		// Default parameters for this data
-		// Time parameters hard coded for operation
-		var param = ({
-			start: Math.floor(Date.now()/1000 - 3600), //60 minutes ago.
-			end:  Math.floor(Date.now()/1000), // now
-			limit: self.config.pg.limit // user adjustable limit
-		});
-
-		for (var key in param){
-			if (options.hasOwnProperty(key)){
-				param[key] = options[key];
-			}
+		// Validate options
+		var err;
+		if ( !Validation.validateNumberParameter(options.start,0) ) err = new Error( "'start' parameter is invalid" );
+		if ( !Validation.validateNumberParameter(options.end,0) ) err = new Error( "'end' parameter is invalid" );
+		if ( !options.tbl_reports ) err = new Error( "'tbl_reports' option must be supplied" );
+		if ( !options.limit && options.limit!==null ) err = new Error( "'limit' option must be supplied" );
+		if (err) {
+			callback(err);
+			return;
 		}
 
 		// SQL
@@ -123,15 +121,15 @@ CognicityServer.prototype = {
 							"text) " +
 						" As l) " +
 					") As properties " +
-					"FROM " + self.config.pg.tbl_reports + " As lg " +
+					"FROM " + options.tbl_reports + " As lg " +
 					"WHERE created_at >= to_timestamp($1) AND " +
 						"created_at <= to_timestamp($2) " +
 					"ORDER BY created_at DESC LIMIT $3" +
 				" ) As f ;",
 			values: [
-	            param.start,
-	            param.end,
-	            param.limit
+	            options.start,
+	            options.end,
+	            options.limit
 			]
 		};
 
@@ -148,21 +146,17 @@ CognicityServer.prototype = {
 	getUnConfirmedReports: function(options, callback){
 		var self = this;
 
-		// TODO Define default param values and param parsing in the server
-
-		// Default parameters for this data
-		var param = ({
-			start: Math.floor(Date.now()/1000 - 3600), //60 minutes ago.
-			end:  Math.floor(Date.now()/1000), //now
-			limit: self.config.pg.uc_limit //user adjustable limit
-		});
-
-		for (var key in param){
-			if (options.hasOwnProperty(key)){
-				param[key] = options[key];
-			}
+		// Validate options
+		var err;
+		if ( !Validation.validateNumberParameter(options.start,0) ) err = new Error( "'start' parameter is invalid" );
+		if ( !Validation.validateNumberParameter(options.end,0) ) err = new Error( "'end' parameter is invalid" );
+		if ( !options.tbl_reports_unconfirmed ) err = new Error( "'tbl_reports_unconfirmed' option must be supplied" );
+		if ( !options.limit && options.limit!==null ) err = new Error( "'limit' option must be supplied" );
+		if (err) {
+			callback(err);
+			return;
 		}
-
+		
 		// SQL
 		var queryObject = {
 			text: "SELECT 'FeatureCollection' As type, " +
@@ -174,15 +168,15 @@ CognicityServer.prototype = {
 							"(SELECT pkey) " +
 						"As l) " +
 					") As properties " +
-					"FROM " + self.config.pg.tbl_reports_unconfirmed + " As lg " +
+					"FROM " + options.tbl_reports_unconfirmed + " As lg " +
 					"WHERE created_at >= to_timestamp($1) AND " +
 						"created_at <= to_timestamp($2) " +
 					"ORDER BY created_at DESC LIMIT $3" +
 				" ) As f ;",
 			values: [
-	            param.start,
-	            param.end,
-	            param.limit
+	            options.start,
+	            options.end,
+	            options.limit
 			]
 		};
 
@@ -199,32 +193,29 @@ CognicityServer.prototype = {
 	getReportsCount: function(options, callback){
 		var self = this;
 
-		// TODO Define default param values and param parsing in the server
-
-		// Default parameters for this data
-		var param = ({
-			start: Math.floor(Date.now()/1000 - 3600), //60 minutes ago
-			end:  Math.floor(Date.now()/1000) // now
-			});
-
-		for (var key in param){
-			if (options.hasOwnProperty(key)){
-				param[key] = options[key];
-			}
+		// Validate options
+		var err;
+		if ( !Validation.validateNumberParameter(options.start,0) ) err = new Error( "'start' parameter is invalid" );
+		if ( !Validation.validateNumberParameter(options.end,0) ) err = new Error( "'end' parameter is invalid" );
+		if ( !options.tbl_reports_unconfirmed ) err = new Error( "'tbl_reports_unconfirmed' option must be supplied" );
+		if ( !options.tbl_reports ) err = new Error( "'tbl_reports' option must be supplied" );
+		if (err) {
+			callback(err);
+			return;
 		}
 
 		//SQL
 		var queryObject = {
 			text: "SELECT row_to_json(row) As data "+
-				 "FROM (SELECT (SELECT count(pkey) FROM "+self.config.pg.tbl_reports_unconfirmed+
+				 "FROM (SELECT (SELECT count(pkey) FROM "+options.tbl_reports_unconfirmed+
 				" WHERE created_at >= to_timestamp($1) AND "+
 					"created_at <= to_timestamp($2)) as uc_count, "+
-					"(SELECT count(pkey) FROM "+self.config.pg.tbl_reports+
+					"(SELECT count(pkey) FROM "+options.tbl_reports+
 						" WHERE created_at >= to_timestamp($1) AND "+
 						"created_at <= to_timestamp($2)) as c_count) as row;",
 			values: [
-							param.start,
-							param.end
+				options.start,
+				options.end
 			]
 		};
 
@@ -233,47 +224,43 @@ CognicityServer.prototype = {
 	},
 
 	getReportsTimeSeries: function(options, callback){
-			var self = this;
+		var self = this;
+		
+		// Validate options
+		var err;
+		if ( !Validation.validateNumberParameter(options.start,0) ) err = new Error( "'start' parameter is invalid" );
+		if ( !Validation.validateNumberParameter(options.end,0) ) err = new Error( "'end' parameter is invalid" );
+		if ( !options.tbl_reports_unconfirmed ) err = new Error( "'tbl_reports_unconfirmed' option must be supplied" );
+		if ( !options.tbl_reports ) err = new Error( "'tbl_reports' option must be supplied" );
+		if (err) {
+			callback(err);
+			return;
+		}
 
-			// TODO Define default param values and param parsing in the server
-
-			// Default parameters for this data
-			var param = ({
-				start: Math.floor(Date.now()/1000 - 86400), // 24 hours ago
-				end:  Math.floor(Date.now()/1000) - 3600 // on hour ago
-			});
-
-			for (var key in param){
-				if (options.hasOwnProperty(key)){
-					param[key] = options[key];
-				}
-			}
-
-			//SQL
-			var queryObject = {
-				text: "SELECT array_to_json(array_agg(row_to_json(row))) as data "+
-					"FROM (SELECT to_char(c.stamp::time,'HH24:MI') stamp, c.count as c_count, uc.count as uc_count "+
-					"FROM (SELECT time.stamp, COALESCE(count.count,0) count "+
-					"FROM (select generate_series(date_trunc('hour',to_timestamp($1)), "+
-						"date_trunc('hour',to_timestamp($2)), '1 hours') AT TIME ZONE 'ICT' as stamp) as time "+
-					"LEFT OUTER JOIN (SELECT count(pkey), date_trunc('hour', created_at) AT TIME ZONE 'ICT' tweettime "+
-						"FROM "+self.config.pg.tbl_reports_unconfirmed+" GROUP BY date_trunc('hour', created_at))as count "+
-					"ON count.tweettime = time.stamp ORDER BY time.stamp ASC) as uc, "+
-					"(SELECT time.stamp, COALESCE(count.count,0) count FROM "+
-					"(select generate_series(date_trunc('hour',to_timestamp($1)), "+
+		//SQL
+		var queryObject = {
+			text: "SELECT array_to_json(array_agg(row_to_json(row))) as data "+
+				"FROM (SELECT to_char(c.stamp::time,'HH24:MI') stamp, c.count as c_count, uc.count as uc_count "+
+				"FROM (SELECT time.stamp, COALESCE(count.count,0) count "+
+				"FROM (select generate_series(date_trunc('hour',to_timestamp($1)), "+
 					"date_trunc('hour',to_timestamp($2)), '1 hours') AT TIME ZONE 'ICT' as stamp) as time "+
-					"LEFT OUTER JOIN (SELECT count(pkey), date_trunc('hour', created_at) AT TIME ZONE 'ICT' tweettime "+
-					"FROM "+self.config.pg.tbl_reports+" GROUP BY date_trunc('hour', created_at))as count "+
-					"ON count.tweettime = time.stamp ORDER BY time.stamp ASC) as c WHERE c.stamp = uc.stamp) as row;",
-				values :
-					[
-						param.start,
-						param.end
-					]
-			};
+				"LEFT OUTER JOIN (SELECT count(pkey), date_trunc('hour', created_at) AT TIME ZONE 'ICT' tweettime "+
+					"FROM "+options.tbl_reports_unconfirmed+" GROUP BY date_trunc('hour', created_at))as count "+
+				"ON count.tweettime = time.stamp ORDER BY time.stamp ASC) as uc, "+
+				"(SELECT time.stamp, COALESCE(count.count,0) count FROM "+
+				"(select generate_series(date_trunc('hour',to_timestamp($1)), "+
+				"date_trunc('hour',to_timestamp($2)), '1 hours') AT TIME ZONE 'ICT' as stamp) as time "+
+				"LEFT OUTER JOIN (SELECT count(pkey), date_trunc('hour', created_at) AT TIME ZONE 'ICT' tweettime "+
+				"FROM "+options.tbl_reports+" GROUP BY date_trunc('hour', created_at))as count "+
+				"ON count.tweettime = time.stamp ORDER BY time.stamp ASC) as c WHERE c.stamp = uc.stamp) as row;",
+			values : [
+				options.start,
+				options.end
+			]
+		};
 
-			// Call data query
-			self.dataQuery(queryObject, callback);
+		// Call data query
+		self.dataQuery(queryObject, callback);
 	},
 
 	/**
@@ -284,26 +271,17 @@ CognicityServer.prototype = {
 	 */
 	getCountByArea: function(options, callback){
 		var self = this;
-
-		// Database table references
-		var point_layer_uc = self.config.pg.tbl_reports_unconfirmed; // unconfirmed reports
-		var point_layer = self.config.pg.tbl_reports; // confirmed reports
-
-		// TODO Define default param values and param parsing in the server
-
-		// Default parameters for this data
-		var param = {
-			start: Math.floor(Date.now()/1000 - 3600), //60 minutes ago
-			end: Math.floor(Date.now()/1000), // now
-
-			// TODO The default definition for this is duplicated in server.js and here, where's the best place for it to happen?
-			polygon_layer: self.config.pg.aggregate_levels[ Object.keys(self.config.pg.aggregate_levels)[0] ]
-		};
-
-		for (var key in param) {
-			if (options.hasOwnProperty(key)){
-				param[key] = options[key];
-			}
+		
+		// Validate options
+		var err;
+		if ( !Validation.validateNumberParameter(options.start,0) ) err = new Error( "'start' parameter is invalid" );
+		if ( !Validation.validateNumberParameter(options.end,0) ) err = new Error( "'end' parameter is invalid" );
+		if ( !options.polygon_layer ) err = new Error( "'polygon_layer' option must be supplied" );
+		if ( !options.point_layer_uc ) err = new Error( "'point_layer_uc' option must be supplied" );
+		if ( !options.point_layer ) err = new Error( "'point_layer' option must be supplied" );
+		if (err) {
+			callback(err);
+			return;
 		}
 
 		// SQL
@@ -331,12 +309,12 @@ CognicityServer.prototype = {
 								"p1.area_name, " +
 								"p1.the_geom, " +
 								"COALESCE(count.count,0) count " +
-							"FROM " + param.polygon_layer + " AS p1 " +
+							"FROM " + options.polygon_layer + " AS p1 " +
 							"LEFT OUTER JOIN ( " +
 								"SELECT b.pkey, " +
 									"count(a.pkey) " +
-								"FROM " + point_layer_uc + " a, " +
-									param.polygon_layer + " b " +
+								"FROM " + options.point_layer_uc + " a, " +
+									options.polygon_layer + " b " +
 								"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
 									"a.created_at >=to_timestamp($1) AND " +
 									"a.created_at <= to_timestamp($2) " +
@@ -346,12 +324,12 @@ CognicityServer.prototype = {
 						") as c1, ( " +
 							"SELECT p1.pkey, " +
 								"COALESCE(count.count,0) count  " +
-							"FROM " + param.polygon_layer + " AS p1 " +
+							"FROM " + options.polygon_layer + " AS p1 " +
 							"LEFT OUTER JOIN( " +
 								"SELECT b.pkey, " +
 									"count(a.pkey) " +
-								"FROM " + point_layer + " a, " +
-									param.polygon_layer + " b " +
+								"FROM " + options.point_layer + " a, " +
+									options.polygon_layer + " b " +
 								"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
 									"a.created_at >= to_timestamp($1) AND " +
 									"a.created_at < to_timestamp($2) " +
@@ -363,8 +341,8 @@ CognicityServer.prototype = {
 					") AS lg " +
 				") AS f;",
 			values: [
-			    param.start,
-			    param.end
+			    options.start,
+			    options.end
 			]
 		};
 
@@ -379,6 +357,18 @@ CognicityServer.prototype = {
 	 */
 	getHistoricalCountByArea: function(options, callback){
 		var self = this;
+		
+		// Validate options
+		var err;
+		if ( !Validation.validateNumberParameter(options.start_time,0) ) err = new Error( "'start_time' parameter is invalid" );
+		if ( !Validation.validateNumberParameter(options.blocks,1) ) err = new Error( "'blocks' parameter is invalid" );
+		if ( !options.polygon_layer ) err = new Error( "'polygon_layer' option must be supplied" );
+		if ( !options.point_layer_uc ) err = new Error( "'point_layer_uc' option must be supplied" );
+		if ( !options.point_layer ) err = new Error( "'point_layer' option must be supplied" );
+		if (err) {
+			callback(err);
+			return;
+		}
 
 		// Setup variables so we can do a count-by-area query for each block and join the responses together
 		var blocksQueried = 0;
@@ -386,7 +376,9 @@ CognicityServer.prototype = {
 		var queryOptions = {
 			start: options.start_time,
 			end: options.start_time + 3600,
-			polygon_layer: options.polygon_layer
+			polygon_layer: options.polygon_layer,
+			point_layer_uc: options.point_layer_uc,
+			point_layer: options.point_layer
 		};
 
 		// Perform one count-by-area query for a single block, on completion recurse and continue
@@ -428,12 +420,19 @@ CognicityServer.prototype = {
 	},
 
 	/**
-	 * Sum of confirmed and unconfirmed aggregates from archive
-	 * @param {String} name The key of the infrastructure configuration item
+	 * Get infrastructure details as JSON/GeoJSON response
+	 * @param {Object} options Options object for the server query
+	 * @param {String} options.infrastructureTableName Table name of the infrastructure table to query
 	 * @param {dataQueryCallback} callback Callback for handling error or response data
 	 */
-	getInfrastructure: function(name, callback){
+	getInfrastructure: function(options, callback){
 		var self = this;
+		
+		// Validate options
+		if (!options.infrastructureTableName) {
+			callback( new Error("Infrastructure table is not valid") );
+			return;
+		}
 
 		var queryObject = {
 			text: "SELECT 'FeatureCollection' AS type, " +
@@ -443,7 +442,7 @@ CognicityServer.prototype = {
 					"row_to_json( " +
 						"(SELECT l FROM (SELECT name) as l) " +
 					") AS properties " +
-					"FROM " + self.config.pg.infrastructure_tbls[name] + " AS lg " +
+					"FROM " + options.infrastructureTableName + " AS lg " +
 				") AS f;",
 			values: []
 		};
