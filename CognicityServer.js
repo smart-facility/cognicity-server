@@ -7,8 +7,7 @@ var Validation = require('./Validation.js');
  * A CognicityServer object queries against the cognicity database and returns data to be returned
  * to the client via the REST service.
  * @constructor
- * @this {CognicityServer}
- * @param {object} config The server configuration object loaded from the configuration file
+ * @param {config} config The server configuration object loaded from the configuration file
  * @param {object} logger Winston logger instance
  * @param {object} pg Postgres 'pg' module instance
  */
