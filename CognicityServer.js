@@ -8,8 +8,8 @@ var Validation = require('./Validation.js');
  * to the client via the REST service.
  * @constructor
  * @param {config} config The server configuration object loaded from the configuration file
- * @param {object} logger Winston logger instance
- * @param {object} pg Postgres 'pg' module instance
+ * @param {object} logger Configured Winston logger instance
+ * @param {object} pg Configured PostGres 'pg' module instance
  */
 var CognicityServer = function(
 	config,
@@ -25,19 +25,19 @@ var CognicityServer = function(
 CognicityServer.prototype = {
 
 	/**
-	 * Server configuration object loaded from the configuration file
+	 * Server configuration
 	 * @type {object}
 	 */
 	config: null,
 
 	/**
-	 * Winston logger instance
+	 * Configured Winston logger instance
 	 * @type {object}
 	 */
 	logger: null,
 
 	/**
-	 * 'pg' module Postgres interface instance
+	 * Configured 'pg' module PostGres interface instance
 	 * @type {object}
 	 */
 	pg: null,

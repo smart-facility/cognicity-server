@@ -3,7 +3,6 @@
 /**
  * Validation routines used by our Express server to validate user input
  * @constructor
- * @this {Validation}
  */
 var Validation = function(){};
 

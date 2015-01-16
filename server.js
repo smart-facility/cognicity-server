@@ -428,6 +428,7 @@ function cachePermanently(cacheKey, data){
 
 /**
  * Store the response the memory cache with timeout
+ * @see {@link config} property cache_timeout
  * @param {string} cacheKey Key for the cache entry
  * @param {object} data Data to store in the cache
  */
@@ -466,7 +467,9 @@ app.use(function(err, req, res, next){
 /**
  * @typedef {object} HttpResponse
  * @property {number} code HTTP Response code
- * @property {object} headers Object containing HTTP headers as key/value pairs
+ * @property {object} headers Object containing HTTP headers as name/value pairs
+ * @property {string} headers.(name) HTTP header name
+ * @property {string} headers.(value) HTTP header value
  * @property {string} body Response body
  */
 
@@ -511,7 +514,7 @@ function prepareResponse(res, data, format){
  * Will write the response code, response headers and response body, and then end the response stream.
  *
  * @param {object} res Express 'res' response object
- * @param {HttpResponse} HTTP response object
+ * @param {HttpResponse} responseData HTTP response object
  */
 function writeResponse(res, responseData) {
 	res.writeHead( responseData.code, responseData.headers );
