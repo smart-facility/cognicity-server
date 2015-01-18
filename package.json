@@ -28,7 +28,7 @@
     "jshint": "jshint config.js server.js CognicityServer.js Validation.js test/testServer.js test/testCognicityServer.js test/testValidation.js",
     "mocha": "mocha test",
     "build-docs": "jsdoc -d docs package.json config.js server.js CognicityServer.js Validation.js",
-    "build": "npm run test && npm run build-docs",
+    "build": "npm test && npm run build-docs && npm run coverage",
     "coverage": "istanbul cover ./node_modules/mocha/bin/_mocha"
   }
 }
