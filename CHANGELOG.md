@@ -12,3 +12,8 @@ CogniCity
 
 ### 1.0.2 - 12/01/2015
 * Added http compression option
+
+### 1.0.3 - 21/01/2015
+* Improved JSDoc outputs
+* Added Istanbul code coverage
+* Revised parameter handling in server.js & CognicityServer.js
