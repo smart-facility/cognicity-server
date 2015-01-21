@@ -100,7 +100,6 @@ pg.connect(config.pg.conString, function(err, client, done){
 
 // Create instances of CognicityServer and Validation
 var server = new CognicityServer(config, logger, pg); // Variable needs to be lowercase or jsdoc output is not correctly linked
-var validation = new Validation();
 
 // Winston stream function we can plug in to express so we can capture its logs along with our own
 var winstonStream = {
@@ -164,8 +163,15 @@ if (config.data === true){
 
 	// Data route for reports
 	app.get('/'+config.url_prefix+'/data/api/v1/reports/confirmed', function(req, res, next){
-		// No options from request passed to internal functions, default data parameters only.
-		server.getReports({}, function(err, data){
+		// Construct options
+		var options = {
+			start: Math.floor(Date.now()/1000 - 3600), // 1 hour ago
+			end: Math.floor(Date.now()/1000), // now
+			limit: config.pg.limit,
+			tbl_reports: config.pg.tbl_reports
+		};
+		
+		server.getReports(options, function(err, data){
 			if (err) {
 				next(err);
 			} else {
@@ -179,8 +185,15 @@ if (config.data === true){
 
 	// Data route for unconfirmed reports
 	app.get('/'+config.url_prefix+'/data/api/v1/reports/unconfirmed', function(req, res, next){
-		// No options passed
-		server.getUnConfirmedReports({}, function(err, data){
+		// Construct options
+		var options = {
+			start: Math.floor(Date.now()/1000 - 3600), // 1 hour ago
+			end: Math.floor(Date.now()/1000), // now
+			limit: config.pg.uc_limit,
+			tbl_reports_unconfirmed: config.pg.tbl_reports_unconfirmed
+		};
+		
+		server.getUnConfirmedReports(options, function(err, data){
 			if (err) {
 				next(err);
 			} else {
@@ -193,11 +206,14 @@ if (config.data === true){
 	});
 
 	//Data route for report counts
-	app.get('/'+config.url_prefix+'/data/api/v1/reports/count', function(req, res, next){
-
-		//No options passed
+	app.get('/'+config.url_prefix+'/data/api/v1/reports/count', function(req, res, next){		
+		// Validate parameter
+		if ( req.query.hours && ['1','3','6','24'].indexOf(req.query.hours)===-1 ) {
+			next( createErrorWithStatus("'hours' parameter must be 1, 3, 6 or 24", 400) );
+			return;
+		}
+		
 		var start;
-
 		// 3 hours
 		if (req.query.hours && req.query.hours === "3"){
 			logger.debug("Parsed option 'hours' as '3'");
@@ -218,10 +234,40 @@ if (config.data === true){
 			logger.debug("Parsed option 'hours' as '1'");
 			start = Math.floor(Date.now()/1000 - 3600);
 		}
+		
+		// Construct options
+		var options = {
+			tbl_reports: config.pg.tbl_reports,
+			tbl_reports_unconfirmed: config.pg.tbl_reports_unconfirmed,
+			start: start,
+			end: Math.floor(Date.now()/1000) // now
+		};
 
 		// Get data from db and update cache.
-		server.getReportsCount({start:start}, function(err, data){
+		server.getReportsCount(options, function(err, data){
 			if (err) {
+				next(err);
+			} else {
+				// Prepare the response data, cache it, and write out the response
+				var responseData = prepareResponse(res, data[0], req.param('format'));
+				cacheTemporarily(req.originalUrl, responseData);
+				writeResponse(res, responseData);
+			}
+		});
+	});
+
+	//Data route for confirmed timeseries
+	app.get('/'+config.url_prefix+'/data/api/v1/reports/timeseries', function(req, res, next){
+		// Construct options
+		var options = {
+			tbl_reports: config.pg.tbl_reports,
+			tbl_reports_unconfirmed: config.pg.tbl_reports_unconfirmed,
+			start: Math.floor(Date.now()/1000 - 86400), // 24 hours ago
+			end: Math.floor(Date.now()/1000) - 3600 // 1 hour ago
+		};
+
+		server.getReportsTimeSeries(options, function(err, data){
+			if(err) {
 				next(err);
 			}
 			else {
@@ -229,61 +275,61 @@ if (config.data === true){
 				var responseData = prepareResponse(res, data[0], req.param('format'));
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
-				}
-			});
+			}
 		});
-
-		//Data route for confirmed timeseries
-		app.get('/'+config.url_prefix+'/data/api/v1/reports/timeseries', function(req, res, next){
-
-			//No options passed
-
-			server.getReportsTimeSeries({}, function(err, data){
-				if(err) {
-					next(err);
-				}
-				else {
-					// Prepare the response data, cache it, and write out the response
-					var responseData = prepareResponse(res, data[0], req.param('format'));
-					cacheTemporarily(req.originalUrl, responseData);
-					writeResponse(res, responseData);
-				}
-			});
-		});
+	});
 
 	if (config.aggregates === true){
 
 		// Data route for spatio-temporal aggregates
-		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/live', function(req, res, next){
-			//Organise parameter options
+		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/live', function(req, res, next){			
+			// Organise parameter options
 			var tbl;
-			if (req.query.level && config.pg.aggregate_levels[req.query.level]){
+			if (req.query.level){
 				tbl = config.pg.aggregate_levels[req.query.level];
-			} else{
+				
+				// Validate parameter
+				if ( !tbl ) {
+					next( createErrorWithStatus("'level' parameter is not valid, it should refer to an aggregate level", 400) );
+					return;
+				}
+				
+			} else {
 				// Use first aggregate level as default
 				tbl = config.pg.aggregate_levels[ Object.keys(config.pg.aggregate_levels)[0] ];
 			}
 			logger.debug("Parsed option 'tbl' as '"+tbl+"'");
 
+			// Validate parameter
+			if ( req.query.hours && ['1','3','6'].indexOf(req.query.hours)===-1 ) {
+				next( createErrorWithStatus("'hours' parameter must be 1, 3 or 6", 400) );
+				return;
+			}
+
 			var start;
-			// 3 hours
 			if (req.query.hours && req.query.hours === "3"){
+				// 3 hours
 				logger.debug("Parsed option 'hours' as '3'");
 				start = Math.floor(Date.now()/1000 - 10800);
-			}
-			// 6 hours
-			else if (req.query.hours && req.query.hours === "6"){
+			} else if (req.query.hours && req.query.hours === "6"){
+				// 6 hours
 				logger.debug("Parsed option 'hours' as '6'");
 				start = Math.floor(Date.now()/1000 - 21600);
-			}
-			// Default to one hour
-			else {
+			} else {
+				// Default to one hour
 				logger.debug("Parsed option 'hours' as '1'");
 				start = Math.floor(Date.now()/1000 - 3600);
 			}
 
 			// Get data from db and update cache.
-			server.getCountByArea({polygon_layer:tbl,start:start}, function(err, data){
+			var options = {
+				polygon_layer: tbl,
+				point_layer_uc: config.pg.tbl_reports_unconfirmed,
+				point_layer: config.pg.tbl_reports,
+				start: start,
+				end: Math.floor(Date.now()/1000) // now
+			};
+			server.getCountByArea(options, function(err, data){
 				if (err) {
 					next(err);
 				} else {
@@ -297,36 +343,38 @@ if (config.data === true){
 
 		// Data route for historical aggregate archive
 		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/archive', function(req, res, next){
-			var options = {};
-			var err;
+			var options = {
+				point_layer_uc: config.pg.tbl_reports_unconfirmed,
+				point_layer: config.pg.tbl_reports
+			};
 
 			// Parse start time parameter or use default
 			if ( req.param('start_time') ) {
 				options.start_time = req.param('start_time');
 				options.start_time = moment( req.param('start_time'), moment.ISO_8601 ).unix();
+				
+				// Validate parameter
+				if ( !Validation.validateNumberParameter(options.start_time, 0, Date.now()) ) {
+					next( createErrorWithStatus("'start_time' parameter is not valid, it must be an ISO8601 string for a time between 1970 and now", 400) );
+					return;
+				}
+				
 			} else {
 				options.start_time = Math.floor( Date.now() / 1000 - (60*60*6) ); // Default - 6 hours ago
-			}
-			// Validate parameter
-			if ( !validation.validateNumberParameter(options.start_time, 0, Date.now()) ) {
-				err = new Error("'start_time' parameter is not valid, it must be an ISO8601 string for a time between 1970 and now");
-				err.status = 400;
-				next(err);
-				return;
 			}
 
 			// Parse blocks parameter or use default
 			if ( req.param('blocks') ) {
 				options.blocks = Math.floor( Number(req.param('blocks')) );
+				
+				// Validate parameter
+				if ( !Validation.validateNumberParameter(options.blocks, 1, 24) ) {
+					next( createErrorWithStatus("'blocks' parameter is not valid, it must be a number between 1 and 24", 400) );
+					return;
+				}
+				
 			} else {
 				options.blocks = 6; // Default - 6 blocks
-			}
-			// Validate parameter
-			if ( !validation.validateNumberParameter(options.blocks, 1, 24) ) {
-				err = new Error("'blocks' parameter is not valid, it must be a number between 1 and 24");
-				err.status = 400;
-				next(err);
-				return;
 			}
 
 			// Set polygon_layer to default value defined by config
@@ -346,8 +394,17 @@ if (config.data === true){
 	app.get( new RegExp('/'+config.url_prefix+'/data/api/v1/infrastructure/.*'), function(req, res, next){
 		// Get last segment of path - e.g. 'waterways' in '.../infrastructure/waterways'
 		var infrastructureName = req.path.split("/").slice(-1)[0];
+		// Construct options object for server query
+		var options = {
+			infrastructureTableName: config.pg.infrastructure_tbls[infrastructureName]
+		};
+		// Validate parameter exists; as it's config driven we don't do more than this and assume that the config is correct
+		if (!options.infrastructureTableName){
+			next( createErrorWithStatus("Infrastructure type is not valid", 400) );
+			return;
+		}
 		// Fetch the infrastructure data from the DB
-		server.getInfrastructure(infrastructureName, function(err, data){
+		server.getInfrastructure(options, function(err, data){
 			if (err) {
 				next(err);
 			} else {
@@ -362,8 +419,8 @@ if (config.data === true){
 
 /**
  * Store the response in the memory cache with no timeout
- * @param {String} cacheKey Key for the cache entry
- * @param {Object} data Data to store in the cache
+ * @param {string} cacheKey Key for the cache entry
+ * @param {object} data Data to store in the cache
  */
 function cachePermanently(cacheKey, data){
 	cache.put(cacheKey, data);
@@ -371,8 +428,9 @@ function cachePermanently(cacheKey, data){
 
 /**
  * Store the response the memory cache with timeout
- * @param {String} cacheKey Key for the cache entry
- * @param {Object} data Data to store in the cache
+ * @see {@link config} property cache_timeout
+ * @param {string} cacheKey Key for the cache entry
+ * @param {object} data Data to store in the cache
  */
 function cacheTemporarily(cacheKey, data){
 	cache.put(cacheKey, data, config.cache_timeout);
@@ -382,6 +440,18 @@ function cacheTemporarily(cacheKey, data){
 app.use(function(req, res, next){
   res.send('Error 404 - Page not found', 404);
 });
+
+/**
+ * Create a JavaScript Error object with the supplied status
+ * @param {string} message Error message
+ * @param {number} status HTTP error status code
+ * @returns {Error} New Error object
+ */
+function createErrorWithStatus(message, status) {
+	var err = new Error(message);
+	err.status = status;
+	return err;
+}
 
 // Error handler function
 app.use(function(err, req, res, next){
@@ -395,14 +465,23 @@ app.use(function(err, req, res, next){
 });
 
 /**
+ * @typedef {object} HttpResponse
+ * @property {number} code HTTP Response code
+ * @property {object} headers Object containing HTTP headers as name/value pairs
+ * @property {string} headers.(name) HTTP header name
+ * @property {string} headers.(value) HTTP header value
+ * @property {string} body Response body
+ */
+
+/**
  * Prepare the response data for sending to the client.
  * Will optionally format the data as topojson if this is requested via the 'format' parameter.
  * Returns a response object containing everything needed to send a response which can be sent or cached.
  *
- * @param {Object} res The express 'res' response object
- * @param {Object} data The data we're going to return to the client
- * @param {String} format Optional format parameter for the response data; either nothing or 'topojson'
- * @returns {Object} Response object with code, headers and body properties.
+ * @param {object} res The express 'res' response object
+ * @param {object} data The data we're going to return to the client
+ * @param {string=} format Format parameter for the response data; either nothing or 'topojson'
+ * @returns {HttpResponse} HTTP response object
  */
 function prepareResponse(res, data, format){
 	var responseData = {};
@@ -434,8 +513,8 @@ function prepareResponse(res, data, format){
  * Write a response object to the client using express.
  * Will write the response code, response headers and response body, and then end the response stream.
  *
- * @param {Object} res Express 'res' response object
- * @param {Object} responseData The response data object with code, headers and body properties.
+ * @param {object} res Express 'res' response object
+ * @param {HttpResponse} responseData HTTP response object
  */
 function writeResponse(res, responseData) {
 	res.writeHead( responseData.code, responseData.headers );

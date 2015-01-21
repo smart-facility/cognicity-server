@@ -26,9 +26,7 @@ Cognicity-server is the NodeJS server module for the CogniCity framework, respon
 * [unit.js](http://unitjs.com/) version 1.0.2 or compatible
 * [mocha](http://mochajs.org/) version 2.0.1 or compatible
 * [jsdoc](https://github.com/jsdoc3/jsdoc) version 3.2.0 or compatible
-
-#### External Node software
-* [Grunt](http://gruntjs.com)
+* [istanbul](https://github.com/gotwarlost/istanbul) version 0.3.5 or compatible
 
 ### Installation
 Download the source code for cognicity-server from github: [http://github.com/smart-facility/cognicity-server](https://github.com/smart-facility/cognicity-server) or view the CogniCity installation documentation at [http://cognicity.info](http://cognicity.info).
@@ -49,6 +47,7 @@ npm install
 To build on Windows we recommend installing all dependencies (making sure to use all 32 bit or all 64 bit, depending on your architecture) plus following the instructions (for Windows 7 follow the Windows 7/8 instructions) for [node-gyp](https://github.com/TooTallNate/node-gyp) and then:
 * You need to add *C:\Program Files\PostgreSQL\9.3\bin* (modifying that location if necessary to point to the installed version of PostgreSQL) to path so the build script finds `pg_config`, and
 * You need to create the *%APPDATA%\npm* folder and run cmd (and hence npm) as administrator. *%APPDATA%* is usually under *C:\Users\your_username\AppData\Remote*.
+* You may need to specify the version of the build tools installed by adding the argument `--msvs_version=2013` to the `npm` command (substituting the appropriate version)
 Then you can run `npm install`.
 
 For the petajakarta-web submodule, install the node dependencies in package.json using NPM as follows
@@ -80,14 +79,16 @@ Server configuration parameters are stored in a configuration file which is pars
 * The `config.root_redirect` parameter defines where a client is redirected to if they request the root path of the server
 
 #### Data Routes
-The following routes exist (prefixed by the scheme and authority):
+The following routes exist:
 * `/data/api/v1/reports/confirmed` - Confirmed reports
 * `/data/api/v1/reports/unconfirmed` - Unconfirmed reports
+* `/data/api/v1/reports/count` - Count only of reports
+* `/data/api/v1/reports/timeseries` - Report counts in hourly intervals
 * `/data/api/v1/aggregates/live` - Live aggregates
 * `/data/api/v1/aggregates/archive` - Archived aggregates
-* `/data/api/v1/infrastructure/*` - Infrastructure data (e.g. waterways, pumps and floodgates in the sample config)
+* `/data/api/v1/infrastructure/*` - Infrastructure data
 
-A URL parameter of 'format=topojson' can be appended to any route to receive the response data in topojson format.
+A URL parameter of `format=topojson` can be appended to any route to receive the response data in topojson format.
 
 Data routes can be disabled (e.g. for testing) by setting the `config.data` parameter to false.
 Aggregate routes can be disabled by setting the `config.aggregates` parameter to false.
@@ -122,6 +123,26 @@ To use this hook, copy the file from 'git-hooks/pre-commit' to '.git/hooks/pre-c
 ```shell
 cp git-hooks/pre-commit .git/hooks/
 ```
+
+#### Documentation
+
+To build the JSDoc documentation run the following npm script:
+
+```shell
+npm run-script build-docs
+```
+
+This will build the HTML API documentation in the folder `docs` where you can open it with a web browser.
+
+#### Test Coverage
+
+To build test code coverage documentation, run the following npm script:
+
+```shell
+npm run-script coverage
+```
+
+This will run istanbul code coverage over the full mocha test harness and produce HTML documentation in the directory `coverage` where you can open it with a web browser.
 
 #### Release
 
