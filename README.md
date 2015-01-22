@@ -9,6 +9,9 @@ CogniCity
 ### About
 Cognicity-server is the NodeJS server module for the CogniCity framework, responsible for serving reports and web content. For detailed framework documentation see [http://cognicity.info](http://cognicity.info).
 
+### API Documentation
+[http://cognicity.info/cognicity/api-docs/cognicity-server/index.html](http://cognicity.info/cognicity/api-docs/cognicity-server/index.html)
+
 ### Dependencies
 * [NodeJS](http://nodejs.org) version 0.10.16 or later
 * [PostgreSQL](http://www.postgresql.org) version 9.2 or later, with [PostGIS](http://postgis/) version 2.0 or later.
@@ -62,7 +65,7 @@ Server configuration parameters are stored in a configuration file which is pars
 * compression - If true, enable Express compression middleware to gzip responses
 
 #### API
-* aggregates.archive.level - The key of the aggregate level ('config.pg.aggregate_levels') to use for archive aggregate response data 
+* aggregates.archive.level - The key of the aggregate level ('config.pg.aggregate_levels') to use for archive aggregate response data
 
 #### Postgres connection
 * conString - PostgreSQL connection string (see node-postgres module documenation)[https://github.com/brianc/node-postgres]
@@ -147,7 +150,7 @@ This will run istanbul code coverage over the full mocha test harness and produc
 #### Release
 
 The release procedure is as follows:
-* Update the CHANGELOG.md file with the newly released version, date, and a high-level overview of changes. Commit the change. 
+* Update the CHANGELOG.md file with the newly released version, date, and a high-level overview of changes. Commit the change.
 * Create a tag in git from the current head of master. The tag version should be the same as the version specified in the package.json file - this is the release version.
 * Update the version in the package.json file and commit the change.
 * Further development is now on the updated version number until the release process begins again.
