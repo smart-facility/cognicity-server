@@ -170,7 +170,7 @@ if (config.data === true){
 			limit: config.pg.limit,
 			tbl_reports: config.pg.tbl_reports
 		};
-		
+
 		server.getReports(options, function(err, data){
 			if (err) {
 				next(err);
@@ -192,7 +192,7 @@ if (config.data === true){
 			limit: config.pg.uc_limit,
 			tbl_reports_unconfirmed: config.pg.tbl_reports_unconfirmed
 		};
-		
+
 		server.getUnConfirmedReports(options, function(err, data){
 			if (err) {
 				next(err);
@@ -206,13 +206,13 @@ if (config.data === true){
 	});
 
 	//Data route for report counts
-	app.get('/'+config.url_prefix+'/data/api/v1/reports/count', function(req, res, next){		
+	app.get('/'+config.url_prefix+'/data/api/v1/reports/count', function(req, res, next){
 		// Validate parameter
 		if ( req.query.hours && ['1','3','6','24'].indexOf(req.query.hours)===-1 ) {
 			next( createErrorWithStatus("'hours' parameter must be 1, 3, 6 or 24", 400) );
 			return;
 		}
-		
+
 		var start;
 		// 3 hours
 		if (req.query.hours && req.query.hours === "3"){
@@ -234,7 +234,7 @@ if (config.data === true){
 			logger.debug("Parsed option 'hours' as '1'");
 			start = Math.floor(Date.now()/1000 - 3600);
 		}
-		
+
 		// Construct options
 		var options = {
 			tbl_reports: config.pg.tbl_reports,
@@ -282,18 +282,18 @@ if (config.data === true){
 	if (config.aggregates === true){
 
 		// Data route for spatio-temporal aggregates
-		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/live', function(req, res, next){			
+		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/live', function(req, res, next){
 			// Organise parameter options
 			var tbl;
 			if (req.query.level){
 				tbl = config.pg.aggregate_levels[req.query.level];
-				
+
 				// Validate parameter
 				if ( !tbl ) {
 					next( createErrorWithStatus("'level' parameter is not valid, it should refer to an aggregate level", 400) );
 					return;
 				}
-				
+
 			} else {
 				// Use first aggregate level as default
 				tbl = config.pg.aggregate_levels[ Object.keys(config.pg.aggregate_levels)[0] ];
@@ -301,8 +301,8 @@ if (config.data === true){
 			logger.debug("Parsed option 'tbl' as '"+tbl+"'");
 
 			// Validate parameter
-			if ( req.query.hours && ['1','3','6'].indexOf(req.query.hours)===-1 ) {
-				next( createErrorWithStatus("'hours' parameter must be 1, 3 or 6", 400) );
+			if ( req.query.hours && ['1','3','6','24'].indexOf(req.query.hours)===-1 ) {
+				next( createErrorWithStatus("'hours' parameter must be 1, 3, 6 or 24", 400) );
 				return;
 			}
 
@@ -315,6 +315,9 @@ if (config.data === true){
 				// 6 hours
 				logger.debug("Parsed option 'hours' as '6'");
 				start = Math.floor(Date.now()/1000 - 21600);
+				// 24 hours
+			} else if (req.query.hours && req.query.houts === "24"){
+				start = Math.flood(Date.now()/1000 - 86400);
 			} else {
 				// Default to one hour
 				logger.debug("Parsed option 'hours' as '1'");
@@ -352,13 +355,13 @@ if (config.data === true){
 			if ( req.param('start_time') ) {
 				options.start_time = req.param('start_time');
 				options.start_time = moment( req.param('start_time'), moment.ISO_8601 ).unix();
-				
+
 				// Validate parameter
 				if ( !Validation.validateNumberParameter(options.start_time, 0, Date.now()) ) {
 					next( createErrorWithStatus("'start_time' parameter is not valid, it must be an ISO8601 string for a time between 1970 and now", 400) );
 					return;
 				}
-				
+
 			} else {
 				options.start_time = Math.floor( Date.now() / 1000 - (60*60*6) ); // Default - 6 hours ago
 			}
@@ -366,13 +369,13 @@ if (config.data === true){
 			// Parse blocks parameter or use default
 			if ( req.param('blocks') ) {
 				options.blocks = Math.floor( Number(req.param('blocks')) );
-				
+
 				// Validate parameter
 				if ( !Validation.validateNumberParameter(options.blocks, 1, 24) ) {
 					next( createErrorWithStatus("'blocks' parameter is not valid, it must be a number between 1 and 24", 400) );
 					return;
 				}
-				
+
 			} else {
 				options.blocks = 6; // Default - 6 blocks
 			}
