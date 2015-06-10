@@ -3,6 +3,7 @@ mj-server.log
 node_modules/
 .elasticbeanstalk
 *.log
+*.sh
 .project
 docs/
 coverage/
