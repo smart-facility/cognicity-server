@@ -68,13 +68,15 @@ Server configuration parameters are stored in a configuration file which is pars
 * aggregates.archive.level - The key of the aggregate level ('config.pg.aggregate_levels') to use for archive aggregate response data
 
 #### Postgres connection
-* conString - PostgreSQL connection string (see node-postgres module documenation)[https://github.com/brianc/node-postgres]
+* conString - PostgreSQL connection string [see node-postgres module documenation](https://github.com/brianc/node-postgres)
 * reconnectionDelay - Delay between reconnection attempts if postgres connection lost
 * reconnectionAttempts - Number of times to attempt to reconnect before dying
 * aggregate_levels - Database tables, keys are the label and values are the table name
 * infrastructure_tbls - Database tables, keys are the label and values are the table name
 * limit - Max number of confirmed reports to return
 * uc_limit - Max number of unconfirmed reports to return
+
+Cognicity-server requires a database that conforms to the [Cognicity framework schema](https://github.com/smart-facility/cognicity-schema).
 
 #### Serving web content
 * The `config.public_dir` parameter is the location of public HTML, CSS, JS web pages to serve.
