@@ -12,7 +12,7 @@
  * @property {number} cache_timeout How long data will live in the cache, in milliseconds
  * @property {boolean} data If true, enable the data query routes
  * @property {boolean} aggregates If true, enable the aggregate query routes
- * @property {boolean} compression If true, enable gzip compression on the server responses 
+ * @property {boolean} compression If true, enable gzip compression on the server responses
  * @property {object} api Configuration options for the API
  * @property {object} api.aggregates Configuration options for the aggregates
  * @property {object} api.aggregates.archive Configuration options for the archive aggregates
@@ -45,6 +45,9 @@ config.instance = 'cognicity-server';
 
 // Location of HTML files to serve
 config.public_dir = __dirname+'/petajakarta-web/build/banjir';
+
+// Location of robots.txt file to server at root level
+config.robots = __dirname+'/petajakarta-web/build/robots.txt';
 
 // Optional URL prefix - e.g. http://localhost/project-name/
 config.url_prefix = 'banjir';

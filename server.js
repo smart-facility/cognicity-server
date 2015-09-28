@@ -120,6 +120,10 @@ app.use( express.logger( { stream : winstonStream } ) );
 app.use(app.router);
 app.use('/'+config.url_prefix, express.static(config.public_dir));
 
+// Robots.txt from root
+app.use('/robots.txt', express.static(config.robots));
+console.log(config.robots);
+
 // Enable CORS for data streams
 app.all('/'+config.url_prefix+'/data/*', function(req, res, next){
 	res.header("Access-Control-Allow-Origin", "*");
