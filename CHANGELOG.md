@@ -17,3 +17,7 @@ CogniCity
 * Improved JSDoc outputs
 * Added Istanbul code coverage
 * Revised parameter handling in server.js & CognicityServer.js
+
+### 1.0.4 - 29/09/2015
+* Added robots.txt route in server.js & config.js
+* Enabled container-based infrastructure for Travis CI
