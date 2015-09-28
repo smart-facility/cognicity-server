@@ -7,6 +7,7 @@
  * @namespace {object} config
  * @property {string} instance The name of this instance of the cognicity server
  * @property {string} public_dir Path to root of files to serve
+ * @property {string} robots Path to robots.txt to server under at '/robots.txt'
  * @property {string} url_prefix Prefix for start of public URLs
  * @property {string} root_redirect If the user browses to '/', redirect them to here
  * @property {number} cache_timeout How long data will live in the cache, in milliseconds
