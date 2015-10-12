@@ -140,24 +140,9 @@ app.get('/'+config.url_prefix, function(req, res){
 	res.redirect('/'+config.root_redirect);
 });
 
-// Route empty API path to docs
-app.get('/'+config.url_prefix+'/data/api', function(req, res){
-	res.redirect('/'+config.url_prefix+'/in/data/api');
-});
-
-// Route empty API path to docs
-app.get('/'+config.url_prefix+'/data/api/v1', function(req, res){
-	res.redirect('/'+config.url_prefix+'/in/data/api');
-});
-
-// Route data path to docs
-app.get('/'+config.url_prefix+'/data/', function(req, res){
-	res.redirect('/'+config.url_prefix+'/in/data/');
-});
-
 if (config.data === true){
 
-	app.get( new RegExp('/'+config.url_prefix+'/data/api/v1/.*'), function(req, res, next){
+	app.get( new RegExp('/'+config.url_prefix+'/data/api/.*'), function(req, res, next){
 		// See if we've got a cache hit on the request URL
 		var cacheResponse = cache.get(req.originalUrl);
 		// Render the cached response now or let express find the next matching route
