@@ -143,6 +143,52 @@ CognicityServer.prototype = {
 	},
 
 	/**
+	 * Get an individual confirmed report from the database.
+	 * Call the callback function with error or response data.
+	 * @param {object} options Configuration options for the query
+	 * @param {number} options.id Unique ID for the report
+	 * @param {string} options.tbl_reports Database table for confirmed reports
+	 * @param {DataQueryCallback} callback Callback for handling error or response data
+	 */
+	getReport: function(options, callback){
+		var self = this;
+
+		// Validate options
+		var err;
+		if ( !Validation.validateNumberParameter(options.id,0) ) err = new Error( "'id parameter is invalid" );
+		if ( !options.id && options.id!==null) err = new Error( "'id' options must be supplied" );
+		if ( !options.tbl_reports ) err = new Error( "'tbl_reports' option must be supplied" );
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		// SQL
+		var queryObject = {
+			text: "SELECT 'FeatureCollection' As type, " +
+					"array_to_json(array_agg(f)) As features " +
+				"FROM (SELECT 'Feature' As type, " +
+					"ST_AsGeoJSON(lg.the_geom)::json As geometry, " +
+					"row_to_json( " +
+						"(SELECT l FROM " +
+							"(SELECT pkey, " +
+							"created_at at time zone 'ICT' created_at, " +
+							"text) " +
+						" As l) " +
+					") As properties " +
+					"FROM " + options.tbl_reports + " As lg " +
+					"WHERE pkey = $1 AND " +
+				" ) As f ;",
+			values: [
+				options.id
+			]
+		};
+
+		// Call data query
+		self.dataQuery(queryObject, callback);
+	},
+
+	/**
 	 * Get unconfirmed reports from the database.
 	 * Call the callback function with error or response data.
 	 * @param {object} options Configuration options for the query
@@ -165,7 +211,7 @@ CognicityServer.prototype = {
 			callback(err);
 			return;
 		}
-		
+
 		// SQL
 		var queryObject = {
 			text: "SELECT 'FeatureCollection' As type, " +
@@ -248,7 +294,7 @@ CognicityServer.prototype = {
 	*/
 	getReportsTimeSeries: function(options, callback){
 		var self = this;
-		
+
 		// Validate options
 		var err;
 		if ( !Validation.validateNumberParameter(options.start,0) ) err = new Error( "'start' parameter is invalid" );
@@ -299,7 +345,7 @@ CognicityServer.prototype = {
 	 */
 	getCountByArea: function(options, callback){
 		var self = this;
-		
+
 		// Validate options
 		var err;
 		if ( !Validation.validateNumberParameter(options.start,0) ) err = new Error( "'start' parameter is invalid" );
@@ -380,7 +426,7 @@ CognicityServer.prototype = {
 
 	/**
 	 * Get a series of report counts by polygon layer for a historical time period.
-	 * @param {object} options Configuration options for the query 
+	 * @param {object} options Configuration options for the query
 	 * @param {number} options.start_time Unix timestamp for start of query period
 	 * @param {number} options.blocks Number of hourly blocks to return
 	 * @param {string} options.polygon_layer Database table for layer of geo data
@@ -390,7 +436,7 @@ CognicityServer.prototype = {
 	 */
 	getHistoricalCountByArea: function(options, callback){
 		var self = this;
-		
+
 		// Validate options
 		var err;
 		if ( !Validation.validateNumberParameter(options.start_time,0) ) err = new Error( "'start_time' parameter is invalid" );
@@ -460,7 +506,7 @@ CognicityServer.prototype = {
 	 */
 	getInfrastructure: function(options, callback){
 		var self = this;
-		
+
 		// Validate options
 		if (!options.infrastructureTableName) {
 			callback( new Error("Infrastructure table is not valid") );
