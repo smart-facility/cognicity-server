@@ -150,6 +150,61 @@ if (config.data === true){
 		else next();
 	});
 
+	//------------//
+	//***API V2***//
+	//------------//
+	// Data route for reports
+	app.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed', function(req, res, next){
+		// Construct options
+		var options = {
+			start: Math.floor(Date.now()/1000 - 3600), // 1 hour ago
+			end: Math.floor(Date.now()/1000), // now
+			limit: config.pg.limit,
+			tbl_reports: config.pg.tbl_reports
+		};
+
+		server.getReports(options, function(err, data){
+			if (err) {
+				next(err);
+			} else {
+				// Prepare the response data, cache it, and write out the response
+				var responseData = prepareResponse(res, data[0], req.param('format'));
+				cacheTemporarily(req.originalUrl, responseData);
+				writeResponse(res, responseData);
+			}
+		});
+	});
+
+	// Data Route for individual reports
+	app.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed/:id', function(req, res, next){
+
+		// Construct internal options
+		var options = {
+			id: parseInt(req.params.id),
+			tbl_reports: config.pg.tbl_reports
+		};
+
+		// Validate parameter
+		if ( !Validation.validateNumberParameter(options.id, 0) ) {
+			next( createErrorWithStatus("'id' parameter is not valid, it must be an integer greater than 1", 400) );
+			return;
+		}
+
+		server.getReport(options, function(err, data){
+			if (err) {
+				next(err);
+			} else {
+				// Prepare the response data, cache it, and write out the response
+				var responseData = prepareResponse(res, data[0], req.param('format'));
+				cacheTemporarily(req.originalUrl, responseData);
+				writeResponse(res, responseData);
+			}
+		});
+	});
+
+	//------------//
+	//***API V1***//
+	//------------//
 	// Data route for reports
 	app.get('/'+config.url_prefix+'/data/api/v1/reports/confirmed', function(req, res, next){
 		// Construct options

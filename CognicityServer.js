@@ -177,7 +177,7 @@ CognicityServer.prototype = {
 						" As l) " +
 					") As properties " +
 					"FROM " + options.tbl_reports + " As lg " +
-					"WHERE pkey = $1 AND " +
+					"WHERE pkey = $1 " +
 				" ) As f ;",
 			values: [
 				options.id
