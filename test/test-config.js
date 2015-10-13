@@ -7,6 +7,8 @@ var config = require("../config.js");
 // Change instance name so we log to test.log
 config.instance = 'test';
 
+config.pg.conString = null;
+
 // Log into application directory
 config.logger.logDirectory = null;
 
