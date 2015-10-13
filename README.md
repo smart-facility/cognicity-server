@@ -7,14 +7,14 @@ CogniCity
 [![Build Status](https://travis-ci.org/smart-facility/cognicity-server.svg)](https://travis-ci.org/smart-facility/cognicity-server)
 
 ### About
-Cognicity-server is the NodeJS server module for the CogniCity framework, responsible for serving reports and web content. For detailed framework documentation see [http://cognicity.info](http://cognicity.info).
+Cognicity-server is the NodeJS server module for the CogniCity framework, responsible for serving reports and web content. For detailed framework documentation see [http://cognicity.info](http://cognicity.info)
 
 ### API Documentation
 [http://cognicity.info/cognicity/api-docs/cognicity-server/index.html](http://cognicity.info/cognicity/api-docs/cognicity-server/index.html)
 
 ### Dependencies
 * [NodeJS](http://nodejs.org) version 0.10.16 or later
-* [PostgreSQL](http://www.postgresql.org) version 9.2 or later, with [PostGIS](http://postgis/) version 2.0 or later.
+* [PostgreSQL](http://www.postgresql.org) version 9.2 or later, with [PostGIS](http://postgis/) version 2.0 or later
 
 #### Node Modules
 * [Express](http://expressjs.com/) version 3.2.6 or compatible
