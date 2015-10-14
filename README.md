@@ -154,6 +154,13 @@ npm run-script coverage
 
 This will run istanbul code coverage over the full mocha test harness and produce HTML documentation in the directory `coverage` where you can open it with a web browser.
 
+#### testing
+
+To test make sure nothing is running on tcp port 8082. Note this is different to the default port of 8081, to avoid a conflict while testing on the same system the server is running on. Then run:
+```shell
+npm test
+```
+
 #### Release
 
 The release procedure is as follows:
