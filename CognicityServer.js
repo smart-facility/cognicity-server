@@ -125,6 +125,8 @@ CognicityServer.prototype = {
 							"created_at at time zone 'ICT' created_at, " +
 							"source, " +
 							"url, " +
+							"image_url, " +
+							"title, " +
 							"text) " +
 						" As l) " +
 					") As properties " +
