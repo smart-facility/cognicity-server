@@ -123,6 +123,8 @@ CognicityServer.prototype = {
 						"(SELECT l FROM " +
 							"(SELECT pkey, " +
 							"created_at at time zone 'ICT' created_at, " +
+							"source, " +
+							"url, " +
 							"text) " +
 						" As l) " +
 					") As properties " +
