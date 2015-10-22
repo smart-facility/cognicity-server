@@ -141,6 +141,11 @@ app.get('/'+config.url_prefix, function(req, res){
 
 if (config.data === true){
 
+	// Depreciate data API v1
+	app.get('/'+config.url_prefix+'/data/api/v1*',function(req, res, next){
+		res.redirect(303, '/'+config.url_prefix+'/data/api/v2'+req.params[0]);
+	});
+
 	app.get( new RegExp('/'+config.url_prefix+'/data/api/v2/.*'), function(req, res, next){
 		// See if we've got a cache hit on the request URL
 		var cacheResponse = cache.get(req.originalUrl);
@@ -149,9 +154,6 @@ if (config.data === true){
 		else next();
 	});
 
-	//------------//
-	//***API V2***//
-	//------------//
 	// Data route for reports
 	app.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed', function(req, res, next){
 		// Construct options
