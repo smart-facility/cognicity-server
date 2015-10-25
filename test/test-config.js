@@ -7,6 +7,10 @@ var config = require("../config.js");
 // Change instance name so we log to test.log
 config.instance = 'test';
 
+config.pg.conString = null;
+
+config.port = 8082; // use something different to the default port of 8081 so we don't trip the server test because of a port conflict
+
 // Log into application directory
 config.logger.logDirectory = null;
 

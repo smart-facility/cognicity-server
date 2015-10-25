@@ -64,7 +64,10 @@ You can then run `grunt` if you need to rebuild the build products following cha
 
 ### Configuration
 Server configuration parameters are stored in a configuration file which is parsed by server.js. See config.js for an example configuration. It is possible to run multiple server instances using different configuration files so long as a unique port is assigned to each instance.
-* compression - If true, enable Express compression middleware to gzip responses
+Some that you probably want to change:
+* config.pg.conString - the database connection string that can include username and password as well as the hostname and database name. If you're deploying to [AWS Elastic Beanstalk](http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/Welcome.html) you will need to configure a property with name DB_NAME and value set to the database name, under Configuration -> Software configuration.
+* config.compression - If true, enable Express compression middleware to gzip responses. If deploying standalone then you probably want to set this to true. If deploying behind a reverse proxy+cache like [nginx](http://nginx.org) then you will want to leave this config option set to false and enable compressing using the caching server. For Elastic Beanstalk using nginx this is configured automatically using the Elastic Beanstalk [config file](https://github.com/smart-facility/cognicity-server/blob/master/.ebextensions/nginx.config) (note if deploying standalone then this file actually contains only a fragment of an nginx config plus the Elastic Beanstalk headers).
+* config.logger.logDirectory - the location of the log file for the server. The default is the current working directory, and the default location + name are set up in the [cloud-log-init.config](https://github.com/smart-facility/cognicity-server/blob/master/.ebextensions/cloud-log-init.config) file for easy export of the log file in Elastic Beanstalk.
 
 #### API
 * aggregates.archive.level - The key of the aggregate level ('config.pg.aggregate_levels') to use for archive aggregate response data
@@ -150,6 +153,13 @@ npm run-script coverage
 ```
 
 This will run istanbul code coverage over the full mocha test harness and produce HTML documentation in the directory `coverage` where you can open it with a web browser.
+
+#### testing
+
+To test make sure nothing is running on tcp port 8082. Note this is different to the default port of 8081, to avoid a conflict while testing on the same system the server is running on. Then run:
+```shell
+npm test
+```
 
 #### Release
 
