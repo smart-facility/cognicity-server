@@ -23,6 +23,8 @@ var pg = require('pg');
 var cache = require('memory-cache');
 // topojson module, used for response format conversion
 var topojson = require('topojson');
+// Morgan (express logging);
+var morgan = require('morgan');
 // Winston logger module, used for logging
 var logger = require('winston');
 // CognicityServer module, application logic and database interaction is handled here
@@ -113,10 +115,10 @@ if ( config.compression ) {
 }
 
 // Setup express logger
-app.use( express.logger( { stream : winstonStream } ) );
+app.use( morgan('combined', { stream : winstonStream } ) );
 
 // Static file server
-app.use(app.router);
+//app.use(app.router);
 app.use('/'+config.url_prefix, express.static(config.public_dir));
 
 // Robots.txt from root
@@ -131,7 +133,7 @@ app.all('/'+config.url_prefix+'/data/*', function(req, res, next){
 
 // Language detection based on client browser
 app.get(['/', '/'+config.root_redirect], function(req, res){
-	if (req.acceptedLanguages.indexOf(config.languages.locale) !== -1){
+	if (req.acceptsLanguages(config.languages.locale) !== false){
 		res.redirect('/'+config.root_redirect+'/'+config.languages.locale);
 	}
 	else {
