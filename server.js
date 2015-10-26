@@ -152,7 +152,7 @@ if (config.data === true){
 		// See if we've got a cache hit on the request URL
 		var cacheResponse = cache.get(req.originalUrl);
 		// Render the cached response now or let express find the next matching route
-		if (cacheResponse) writeResponse( res, cacheResponse );
+		if (cacheResponse) writeResponse(res, cacheResponse);
 		else next();
 	});
 
@@ -172,7 +172,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -181,7 +181,6 @@ if (config.data === true){
 
 	// Data Route for individual reports
 	app.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed/:id', function(req, res, next){
-
 		// Construct internal options
 		var options = {
 			id: parseInt(req.params.id),
@@ -199,7 +198,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -221,7 +220,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -272,7 +271,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -295,7 +294,7 @@ if (config.data === true){
 			}
 			else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -360,7 +359,7 @@ if (config.data === true){
 					next(err);
 				} else {
 					// Prepare the response data, cache it, and write out the response
-					var responseData = prepareResponse(res, data[0], req.param('format'));
+					var responseData = prepareResponse(res, data[0], req.query.format);
 					cacheTemporarily(req.originalUrl, responseData);
 					writeResponse(res, responseData);
 				}
@@ -375,9 +374,9 @@ if (config.data === true){
 			};
 
 			// Parse start time parameter or use default
-			if ( req.param('start_time') ) {
-				options.start_time = req.param('start_time');
-				options.start_time = moment( req.param('start_time'), moment.ISO_8601 ).unix();
+			if ( req.query.start_time ) {
+				options.start_time = req.query.start_time;
+				options.start_time = moment( req.query.start_time, moment.ISO_8601 ).unix();
 
 				// Validate parameter
 				if ( !Validation.validateNumberParameter(options.start_time, 0, Date.now()) ) {
@@ -390,8 +389,8 @@ if (config.data === true){
 			}
 
 			// Parse blocks parameter or use default
-			if ( req.param('blocks') ) {
-				options.blocks = Math.floor( Number(req.param('blocks')) );
+			if ( req.query.blocks ) {
+				options.blocks = Math.floor( Number(req.query.blocks) );
 
 				// Validate parameter
 				if ( !Validation.validateNumberParameter(options.blocks, 1, 24) ) {
@@ -410,7 +409,7 @@ if (config.data === true){
 				if (err) {
 					next(err);
 				} else {
-					var responseData = prepareResponse(res, data[0], req.param('format'));
+					var responseData = prepareResponse(res, data[0], req.query.format);
 					writeResponse(res, responseData);
 				}
 			});
@@ -435,7 +434,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cachePermanently(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
