@@ -464,7 +464,7 @@ function cacheTemporarily(cacheKey, data){
 
 // 404 handling
 app.use(function(req, res, next){
-  res.send('Error 404 - Page not found', 404);
+  res.status(404).send('Error 404 - Page not found');
 });
 
 /**
