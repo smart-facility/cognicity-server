@@ -84,7 +84,6 @@ pg.on('error', function(err) {
 			}
 		});
 	};
-
 	reconnectionFunction();
 });
 
@@ -131,12 +130,21 @@ app.all('/'+config.url_prefix+'/data/*', function(req, res, next){
 });
 
 // Route root path to some place.
-app.get('/', function(req, res){
-	res.redirect('/'+config.root_redirect);
-});
+//app.get('/', function(req, res){
+//	res.redirect('/'+config.root_redirect);
+//});
 
-app.get('/'+config.url_prefix, function(req, res){
-	res.redirect('/'+config.root_redirect);
+//app.get('/'+config.url_prefix, function(req, res){
+//	res.redirect('/'+config.root_redirect);
+//});
+
+app.get(['/', '/'+config.root_redirect], function(req, res){
+	if (req.acceptedLanguages.indexOf(config.languages.locale) != -1){
+		res.redirect('/'+config.root_redirect+config.languages.locale);
+	}
+	else {
+		res.redirect('/'+config.root_redirect+config.languages.default);
+	}
 });
 
 if (config.data === true){

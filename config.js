@@ -10,6 +10,7 @@
  * @property {string} robots Path to robots.txt to server under at '/robots.txt'
  * @property {string} url_prefix Prefix for start of public URLs
  * @property {string} root_redirect If the user browses to '/', redirect them to here
+ * @property {object} languages Multi-language support, should match templates of any static HTML
  * @property {number} cache_timeout How long data will live in the cache, in milliseconds
  * @property {boolean} data If true, enable the data query routes
  * @property {boolean} aggregates If true, enable the aggregate query routes
@@ -53,8 +54,13 @@ config.robots = __dirname+'/petajakarta-web/build/robots.txt';
 // Optional URL prefix - e.g. http://localhost/project-name/
 config.url_prefix = 'banjir';
 
-// Optional redirect path for root ['/] requests
-config.root_redirect = 'banjir/in';
+// Optional redirect path for root ['/'] requests
+config.root_redirect = 'banjir';
+
+// Dual language support
+config.languages = {};
+config.languages.locale = 'id'; // Indonesian
+config.languages.default= 'en'; // English
 
 // Default cache time expiry
 config.cache_timeout = 60000; // Data cache expiry (1 minute)
