@@ -85,7 +85,7 @@ Cognicity-server requires a database that conforms to the [Cognicity framework s
 
 #### Serving web content
 * The `config.public_dir` parameter is the location of public HTML, CSS, JS web pages to serve.
-* By default pages are served at [http://localhost:8080/project-name/], the optional prefix URL can be changed using the `config.url_prefix` configuration parameter.
+* By default pages are served at [http://localhost:8081/project-name/], the optional prefix URL can be changed using the `config.url_prefix` configuration parameter.
 * The `config.root_redirect` parameter defines where a client is redirected to if they request the root path of the server
 
 #### Data Routes
