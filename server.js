@@ -23,6 +23,8 @@ var pg = require('pg');
 var cache = require('memory-cache');
 // topojson module, used for response format conversion
 var topojson = require('topojson');
+// Morgan (express logging);
+var morgan = require('morgan');
 // Winston logger module, used for logging
 var logger = require('winston');
 // CognicityServer module, application logic and database interaction is handled here
@@ -113,10 +115,10 @@ if ( config.compression ) {
 }
 
 // Setup express logger
-app.use( express.logger( { stream : winstonStream } ) );
+app.use( morgan('combined', { stream : winstonStream } ) );
 
 // Static file server
-app.use(app.router);
+//app.use(app.router);
 app.use('/'+config.url_prefix, express.static(config.public_dir));
 
 // Robots.txt from root
@@ -131,7 +133,7 @@ app.all('/'+config.url_prefix+'/data/*', function(req, res, next){
 
 // Language detection based on client browser
 app.get(['/', '/'+config.root_redirect], function(req, res){
-	if (req.acceptedLanguages.indexOf(config.languages.locale) !== -1){
+	if (req.acceptsLanguages(config.languages.locale) !== false){
 		res.redirect('/'+config.root_redirect+'/'+config.languages.locale);
 	}
 	else {
@@ -150,7 +152,7 @@ if (config.data === true){
 		// See if we've got a cache hit on the request URL
 		var cacheResponse = cache.get(req.originalUrl);
 		// Render the cached response now or let express find the next matching route
-		if (cacheResponse) writeResponse( res, cacheResponse );
+		if (cacheResponse) writeResponse(res, cacheResponse);
 		else next();
 	});
 
@@ -170,7 +172,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -179,7 +181,6 @@ if (config.data === true){
 
 	// Data Route for individual reports
 	app.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed/:id', function(req, res, next){
-
 		// Construct internal options
 		var options = {
 			id: parseInt(req.params.id),
@@ -197,7 +198,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -219,7 +220,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -270,7 +271,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -293,7 +294,7 @@ if (config.data === true){
 			}
 			else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -358,7 +359,7 @@ if (config.data === true){
 					next(err);
 				} else {
 					// Prepare the response data, cache it, and write out the response
-					var responseData = prepareResponse(res, data[0], req.param('format'));
+					var responseData = prepareResponse(res, data[0], req.query.format);
 					cacheTemporarily(req.originalUrl, responseData);
 					writeResponse(res, responseData);
 				}
@@ -373,9 +374,9 @@ if (config.data === true){
 			};
 
 			// Parse start time parameter or use default
-			if ( req.param('start_time') ) {
-				options.start_time = req.param('start_time');
-				options.start_time = moment( req.param('start_time'), moment.ISO_8601 ).unix();
+			if ( req.query.start_time ) {
+				options.start_time = req.query.start_time;
+				options.start_time = moment( req.query.start_time, moment.ISO_8601 ).unix();
 
 				// Validate parameter
 				if ( !Validation.validateNumberParameter(options.start_time, 0, Date.now()) ) {
@@ -388,8 +389,8 @@ if (config.data === true){
 			}
 
 			// Parse blocks parameter or use default
-			if ( req.param('blocks') ) {
-				options.blocks = Math.floor( Number(req.param('blocks')) );
+			if ( req.query.blocks ) {
+				options.blocks = Math.floor( Number(req.query.blocks) );
 
 				// Validate parameter
 				if ( !Validation.validateNumberParameter(options.blocks, 1, 24) ) {
@@ -408,7 +409,7 @@ if (config.data === true){
 				if (err) {
 					next(err);
 				} else {
-					var responseData = prepareResponse(res, data[0], req.param('format'));
+					var responseData = prepareResponse(res, data[0], req.query.format);
 					writeResponse(res, responseData);
 				}
 			});
@@ -433,7 +434,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cachePermanently(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -462,7 +463,7 @@ function cacheTemporarily(cacheKey, data){
 
 // 404 handling
 app.use(function(req, res, next){
-  res.send('Error 404 - Page not found', 404);
+  res.status(404).send('Error 404 - Page not found');
 });
 
 /**

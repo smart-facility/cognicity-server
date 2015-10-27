@@ -6,19 +6,20 @@
   "preferGlobal": false,
   "private": true,
   "dependencies": {
-    "express": "^3.2.6",
+    "express": "^4.13.3",
     "memory-cache": "^0.0.5",
     "pg": "^3.0.0",
-    "topojson": "^1.6.14",
-    "winston": "^0.8.1",
-    "moment": "^2.8.4"
+    "topojson": "^1.6.19",
+    "morgan": "^1.6.1",
+    "winston" : "^0.8.3",
+    "moment": "^2.10.6"
   },
   "devDependencies": {
-    "jsdoc": "^3.2.0",
-    "jshint": "^2.5.8",
-    "mocha": "^2.0.1",
-    "unit.js": "^1.0.2",
-    "istanbul": "^0.3.5"
+    "jsdoc": "^3.3.3",
+    "jshint": "^2.8.0",
+    "mocha": "^2.3.3",
+    "unit.js": "^2.0.0",
+    "istanbul": "^0.4.0"
   },
   "engines": {
     "node": "^0.10.16"
