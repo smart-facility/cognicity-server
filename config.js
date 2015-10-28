@@ -84,7 +84,7 @@ config.pg.conString = 'postgres://' + process.env.RDS_USERNAME + ':' + process.e
 config.pg.reconnectionDelay = 1000 * 60 * 3; // Delay before attempting a reconnection in ms
 config.pg.reconnectionAttempts = 5; // Number of times to attempt reconnection before notifying admin and exiting
 // Database tables
-config.pg.tbl_reports = 'all_reports';
+config.pg.tbl_reports = 'all_reports'; // Change to use multiple data sources
 config.pg.tbl_reports_unconfirmed = 'tweet_reports_unconfirmed';
 
 // Optional support for report aggregation, required if config.data.aggregates set to true.
