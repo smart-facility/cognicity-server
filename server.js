@@ -145,7 +145,8 @@ if (config.data === true){
 
 	// Depreciate data API v1
 	app.get('/'+config.url_prefix+'/data/api/v1*',function(req, res, next){
-		res.redirect(303, '/'+config.url_prefix+'/data/api/v2'+req.params[0]);
+		res.redirect(301, '/'+config.url_prefix+'/data/api/v2'+req.params[0]);
+		res.setHeader('Cache-Control','max-age=60');
 	});
 
 	app.get( new RegExp('/'+config.url_prefix+'/data/api/v2/.*'), function(req, res, next){
