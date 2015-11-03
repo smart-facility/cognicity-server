@@ -141,12 +141,12 @@ app.get('/'+config.url_prefix, function(req, res){
 
 // Route empty API path to docs
 app.get('/'+config.url_prefix+'/data/api', function(req, res){
-	res.redirect('/'+config.url_prefix+'/in/data/api');
+	res.redirect('/'+config.url_prefix+'/in/data/api/');
 });
 
 // Route empty API path to docs
 app.get('/'+config.url_prefix+'/data/api/v1', function(req, res){
-	res.redirect('/'+config.url_prefix+'/in/data/api');
+	res.redirect('/'+config.url_prefix+'/in/data/api/');
 });
 
 // Route data path to docs
