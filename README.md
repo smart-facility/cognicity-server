@@ -20,7 +20,7 @@ Cognicity-server is the NodeJS server module for the CogniCity framework, respon
 
 #### Node Modules
 * [Express](http://expressjs.com/) version 3.2.6 or compatible
-* [Node-Postgres](https://github.com/brianc/node-postgres) version 2.0.0 or compatible
+* [Node-Postgres](https://github.com/brianc/node-postgres) version 3.0.0 or compatible
 * [Memory-Cache](https://github.com/ptarjan/node-cache) version 0.0.5 or compatible
 * [topojson](https://github.com/mbostock/topojson) version 1.6.14 or compatible
 * [winston](https://github.com/flatiron/winston) version 0.8.1 or compatible
@@ -34,7 +34,7 @@ Cognicity-server is the NodeJS server module for the CogniCity framework, respon
 * [istanbul](https://github.com/gotwarlost/istanbul) version 0.3.5 or compatible
 
 ### Installation
-Download the source code for cognicity-server from github: [http://github.com/smart-facility/cognicity-server](https://github.com/smart-facility/cognicity-server) or view the CogniCity installation documentation at [http://cognicity.info](http://cognicity.info).
+Download the source code for cognicity-server from github: [https://github.com/smart-facility/cognicity-server](https://github.com/smart-facility/cognicity-server) or view the CogniCity installation documentation at [http://cognicity.info](http://cognicity.info).
 To check it out using git, run `git clone --recursive git@github.com:smart-facility/cognicity-server`, which will also check out the default web site submodule [https://github.com/smart-facility/petajakarta-web](https://github.com/smart-facility/petajakart-web), which if you fork you can change to your own set of pages (refer to config.public_dir and config.url_prefix in the config.js file). If you have already cloned the repository, and want to check out the submodule, then run
 ```shell
 git submodule init
@@ -85,7 +85,7 @@ Cognicity-server requires a database that conforms to the [Cognicity framework s
 
 #### Serving web content
 * The `config.public_dir` parameter is the location of public HTML, CSS, JS web pages to serve.
-* By default pages are served at [http://localhost:8080/project-name/], the optional prefix URL can be changed using the `config.url_prefix` configuration parameter.
+* By default pages are served at [http://localhost:8081/project-name/], the optional prefix URL can be changed using the `config.url_prefix` configuration parameter.
 * The `config.root_redirect` parameter defines where a client is redirected to if they request the root path of the server
 
 #### Data Routes

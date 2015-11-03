@@ -54,7 +54,7 @@ config.robots = __dirname+'/petajakarta-web/build/robots.txt';
 config.url_prefix = 'banjir';
 
 // Optional redirect path for root ['/] requests
-config.root_redirect = 'banjir/in';
+config.root_redirect = 'banjir/in/';
 
 // Default cache time expiry
 config.cache_timeout = 60000; // Data cache expiry (1 minute)
