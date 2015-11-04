@@ -79,7 +79,7 @@ config.api.aggregates.archive.level = 'rw';
 config.pg = {};
 // Sample connection string using environment variables, e.g. from AWS Elastic Beanstalk.
 // Substitute variable names for constants in other environments.
-config.pg.conString = 'postgres://' + process.env.RDS_USERNAME + ':' + process.env.RDS_PASSWORD +'@' + process.env.RDS_HOSTNAME + ':' + process.env.RDS_PORT + '/' + process.env.DB_NAME;
+config.pg.conString = 'postgres://localhost/cognicity';// + process.env.RDS_USERNAME + ':' + process.env.RDS_PASSWORD +'@' + process.env.RDS_HOSTNAME + ':' + process.env.RDS_PORT + '/' + process.env.DB_NAME;
 // Database reconnection settings
 config.pg.reconnectionDelay = 1000 * 60 * 3; // Delay before attempting a reconnection in ms
 config.pg.reconnectionAttempts = 5; // Number of times to attempt reconnection before notifying admin and exiting
