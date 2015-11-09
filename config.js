@@ -77,9 +77,21 @@ config.api.aggregates.archive.level = 'rw';
 
 // Postgres database connection
 config.pg = {};
-// Sample connection string using environment variables, e.g. from AWS Elastic Beanstalk.
-// Substitute variable names for constants in other environments.
-config.pg.conString = 'postgres://postgres@localhost/cognicity';// + process.env.RDS_USERNAME + ':' + process.env.RDS_PASSWORD +'@' + process.env.RDS_HOSTNAME + ':' + process.env.RDS_PORT + '/' + process.env.DB_NAME;
+
+// Example postgres string for running on localhost
+config.pg.conString = 'postgres://postgres@localhost/cognicity';
+
+/* Sample connection string using environment variables from AWS Elastic Beanstalk.
+config.pg.conString = 'postgres://' + process.env.RDS_USERNAME + ':' + process.env.RDS_PASSWORD +'@' + process.env.RDS_HOSTNAME + ':' + process.env.RDS_PORT + '/' + process.env.DB_NAME;
+	On other platforms you would replace those variables as necessary
+*/
+
+/* Example of setting up config.pg.conString for running on IBM bluemix using user-provided postgres running on compose.io
+var vcapServices = JSON.parse(process.env.VCAP_SERVICES)
+var pgdetails = vcapServices['user-provided'][0];
+config.pg.conString = 'postgres://' + pgdetails.credentials.username + ':' + pgdetails.credentials.password + '@' + pgdetails.credentials.public_hostname +'/cognicity';
+*/
+
 // Database reconnection settings
 config.pg.reconnectionDelay = 1000 * 60 * 3; // Delay before attempting a reconnection in ms
 config.pg.reconnectionAttempts = 5; // Number of times to attempt reconnection before notifying admin and exiting
@@ -111,5 +123,6 @@ config.logger.logDirectory = '.'; // Set this to a full path to a directory - if
 
 // Server port
 config.port = process.env.PORT || 8081;
+// on IBM bluemix use config.port = process.env.VCAP_APP_PORT || 8081;
 
 module.exports = config;
