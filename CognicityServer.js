@@ -244,6 +244,57 @@ CognicityServer.prototype = {
 	},
 
 	/**
+	* Attribute confirmed reports with the name of the containing (parent) city boundary
+	* Return as JSON with location of report as embedded GeoJSON
+	* @param {object} options Configuration options for the query
+	* @param {number} options.start Unix timestamp for start of query period
+	* @param {number} options.end Unix timestamp for end of query period
+	* @param {string} options.area_name Optional name of city as filter
+	* @param {string} options.tbl_reports Database table for confirmed reports
+	* @param {string} options.polygon_layer Database table for city polygons
+	* @param {?number} options.limit Number of results to limit to, or null for all
+	* @param {DataQueryCallback} callback Callback for handling error or response data
+	*/
+	getReportsByCity: function(options, callback){
+		var self = this;
+
+		// Validate Options
+		var err;
+		if ( !Validation.validateNumberParameter(options.start,0) ) err = new Error( "'start' parameter is invalid" );
+		if ( !Validation.validateNumberParameter(options.end,0) ) err = new Error( "'end' parameter is invalid" );
+		if ( !options.tbl_reports ) err = new Error( "'tbl_reports' option must be supplied" );
+		if ( !options.polygon_layer ) err = new Error( "'polygon_layer' option must be supplied" );
+		if ( !options.limit && options.limit!==null ) err = new Error( "'limit' option must be supplied" );
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		// SQL
+		var queryObject = {
+			text: "SELECT array_to_json(array_agg(row_to_json(row))) as data FROM " +
+						"(SELECT a.pkey, " +
+							"a.created_at, " +
+							"a.text, " +
+							"ST_AsGeoJSON(a.the_geom), " +
+							"b.area_name " +
+						"FROM tweet_reports a, " +
+							"jkt_city_boundary b " +
+						"WHERE ST_Within(a.the_geom, b.the_geom) " +
+							"AND b.area_name LIKE 'JAKARTA%' LIMIT 10) row;",
+			values: [
+				options.start,
+				options.end,
+				options.limit
+				...more options?
+			]
+		};
+
+		// Call data query
+		self.dataQuery(queryObject, callback);
+	},
+
+	/**
 	* Count confirmed unconfirmed reports within a given number of hours.
 	* Call the callback function with error or response data.
 	* @param {object} options Configuration options for the query
