@@ -255,7 +255,7 @@ CognicityServer.prototype = {
 	* @param {?number} options.limit Number of results to limit to, or null for all
 	* @param {DataQueryCallback} callback Callback for handling error or response data
 	*/
-	getReportsByCity: function(options, callback){
+	getReportsByArea: function(options, callback){
 		var self = this;
 
 		// Validate Options
@@ -276,17 +276,22 @@ CognicityServer.prototype = {
 						"(SELECT a.pkey, " +
 							"a.created_at, " +
 							"a.text, " +
+							"a.source, " +
 							"ST_AsGeoJSON(a.the_geom), " +
 							"b.area_name " +
-						"FROM tweet_reports a, " +
-							"jkt_city_boundary b " +
-						"WHERE ST_Within(a.the_geom, b.the_geom) " +
-							"AND b.area_name LIKE 'JAKARTA%' LIMIT 10) row;",
+						"FROM " + options.tbl_reports + " a, " +
+							options.polygon_layer + " b " +
+						"WHERE created_at >= to_timestamp($1) AND " +
+							"created_at <= to_timestamp($2) AND " +
+							"ST_Within(a.the_geom, b.the_geom) AND " +
+							"($4 is null or b.area_name = $4) " +
+							"ORDER BY created_at DESC LIMIT $3 ) row;",
+
 			values: [
 				options.start,
 				options.end,
-				options.limit
-				...more options?
+				options.limit,
+				options.area_name
 			]
 		};
 
