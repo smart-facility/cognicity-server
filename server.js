@@ -441,6 +441,39 @@ if (config.data === true){
 			}
 		});
 	});
+
+	// FloodWatch API
+	if (config.floodwatch === true){
+		// Data route for JSON data of reports by city last hour
+		app.get('/'+config.url_prefix+'/data/api/v2/floodwatch/reports/', function(req,res,next){
+			// Prepare area name
+			var area_name = null;
+			if (req.params.area_name){
+				area_name = req.params.area_name;
+			}
+			// Query options
+			var options = {
+				point_layer: config.pg.tbl_reports,
+				polygon_layer: config.pg.city,
+				start: Math.floor(Date.now()/1000-3600), // 1 hour ago
+				end: Math.floor(Date.now()/1000),
+				limit:config.pg.limit,
+				area_name: area_name
+		};
+			// Fetch the data
+			server.getReportsByArea(options, function(err, data){
+				if (err){
+					next(err);
+				}
+				else {
+					// Prepare response data, cache and write out response
+					var responseData = prepareResponse(res, data[0], req.query.format);
+					cacheTemporarily(req.originalUrl, responseData);
+					writeResponse(res, responseData);
+				}
+			});
+		});
+	}
 }
 
 /**
