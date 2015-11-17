@@ -284,7 +284,7 @@ CognicityServer.prototype = {
 						"WHERE created_at >= to_timestamp($1) AND " +
 							"created_at <= to_timestamp($2) AND " +
 							"ST_Within(a.the_geom, b.the_geom) AND " +
-							"($4 is null or b.area_name = $4) " +
+							"($4::varchar is null or b.area_name = $4::varchar) " +
 							"ORDER BY created_at DESC LIMIT $3 ) row;",
 
 			values: [

@@ -448,14 +448,15 @@ if (config.data === true){
 		app.get('/'+config.url_prefix+'/data/api/v2/floodwatch/reports/', function(req,res,next){
 			// Prepare area name
 			var area_name = null;
-			if (req.params.area_name){
-				area_name = req.params.area_name;
+			if (req.query.area_name){
+				area_name = req.query.area_name;
 			}
 			// Query options
 			var options = {
-				point_layer: config.pg.tbl_reports,
-				polygon_layer: config.pg.city,
-				start: Math.floor(Date.now()/1000-3600), // 1 hour ago
+				tbl_reports: config.pg.tbl_reports,
+				polygon_layer: config.pg.aggregate_levels.city,
+				//start: Math.floor(Date.now()/1000-3600), // 1 hour ago
+				start: -1,
 				end: Math.floor(Date.now()/1000),
 				limit:config.pg.limit,
 				area_name: area_name
