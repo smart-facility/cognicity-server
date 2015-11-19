@@ -161,7 +161,7 @@ if (config.data === true){
 	app.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed', function(req, res, next){
 		// Construct options
 		var options = {
-			start: Math.floor(Date.now()/1000 - 21600), // 6 hours ago CHANGEME
+			start: Math.floor(Date.now()/1000 - config.api.time_window),
 			end: Math.floor(Date.now()/1000), // now
 			limit: config.pg.limit,
 			tbl_reports: config.pg.tbl_reports
@@ -454,7 +454,7 @@ if (config.data === true){
 			var options = {
 				tbl_reports: config.pg.tbl_reports,
 				polygon_layer: config.pg.aggregate_levels.city,
-				start: Math.floor(Date.now()/1000-21600), // 6 hours ago CHANGEME
+				start: Math.floor(Date.now()/1000 - config.api.time_window),
 				end: Math.floor(Date.now()/1000),
 				limit:config.pg.limit,
 				area_name: area_name
