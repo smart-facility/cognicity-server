@@ -22,7 +22,7 @@
     "istanbul": "^0.4.0"
   },
   "engines": {
-    "node": "^0.10.16"
+    "node": "^4.2.1"
   },
   "scripts": {
     "test": "npm run jshint && npm run mocha",
