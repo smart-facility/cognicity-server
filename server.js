@@ -161,7 +161,8 @@ if (config.data === true){
 	app.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed', function(req, res, next){
 		// Construct options
 		var options = {
-			start: Math.floor(Date.now()/1000 - 3600), // 1 hour ago
+			//start: Math.floor(Date.now()/1000 - 3600), // 1 hour ago
+			start: -1,
 			end: Math.floor(Date.now()/1000), // now
 			limit: config.pg.limit,
 			tbl_reports: config.pg.tbl_reports
