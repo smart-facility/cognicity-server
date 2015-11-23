@@ -607,7 +607,7 @@ describe( "getHistoricalCountByArea validation", function() {
 	var getCountByAreaCalled;
 	var callbackErr;
 	var callbackData;
-	var callbackDataResponse = ['ale'];
+	var callbackDataResponse = [{type:'ale'}];
 	
 	function createOptions(start_time,blocks,polygon_layer,point_layer_uc,point_layer){
 		return {
