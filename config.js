@@ -74,6 +74,7 @@ config.api = {};
 config.api.aggregates = {};
 config.api.aggregates.archive = {};
 config.api.aggregates.archive.level = 'rw';
+config.api.time_window = 21600; // 6 hrs
 
 // Postgres database connection
 config.pg = {};
