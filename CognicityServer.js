@@ -301,6 +301,55 @@ CognicityServer.prototype = {
 	},
 
 	/**
+	* Get floodgauge readings
+	* Call the callback function with error or response data
+	* @param {object} options Configuration options for the query
+	* @param {number} options.start Unix timestamp for the start time of first available observation
+	* @param {number} options.end Unix timestamp for the end time of the last available observation
+	* @param {string} options.tbl_floodgauges Database table for the floodgauge observations
+	* @param {DataQueryCallback} callback Callback for handling error or response data
+	*/
+	getFloodgauges: function(options, callback){
+		var self = this;
+
+		// Validate options
+		var err;
+		if ( !Validation.validateNumberParameter(options.start,0) ) err = new Error("'start' parameter is invalid" );
+		if ( !Validation.validateNumberParameter(options.end,0)  ) err = new Error("'end' parameter is invalid" );
+		if ( !options.tbl_floodgauges ) err = new Error( "'tbl_floodgauges' option must be supplied" );
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		// SQL
+		var queryObject = {
+			text: "SELECT 'FeatureCollection' as type, " +
+			"array_to_json(array_agg(f)) as features " +
+				"FROM (SELECT 'Feature' as type, " +
+					"ST_AsGeoJSON(gauges.the_geom)::json as " +
+					 "geometry, gauges.gaugeid as gauge_id, " +
+						"array_to_json(array_agg(obs)) as " +
+						"properties " +
+							"FROM (SELECT gaugeid, " +
+								"measuredatetime, depth FROM " +
+								options.tbl_floodgauges+") obs, " +
+								"(SELECT gaugeid, the_geom FROM " +
+								"floodgauge_reports) gauges WHERE " +
+								"obs.gaugeid = gauges.gaugeid " +
+								"AND obs.measuredatetime >= to_timestamp($1)" +
+								"AND obs.measuredatetime <= to_timestamp($2)" +
+								"GROUP BY gauges.gaugeid, gauges.the_geom) as f;",
+				values : [
+					options.start,
+					options.end
+				]
+		};
+		// Call data query
+		self.dataQuery(queryObject, callback);
+	},
+
+	/**
 	* Count confirmed unconfirmed reports within a given number of hours.
 	* Call the callback function with error or response data.
 	* @param {object} options Configuration options for the query
