@@ -4,7 +4,7 @@ CogniCity
 
 #### cognicity-server: NodeJS server for CogniCity data and web files.
 
-Travis build status: [![Travis Build Status](https://travis-ci.org/smart-facility/cognicity-server.svg)](https://travis-ci.org/smart-facility/cognicity-server)
+Travis build status: [![Travis Build Status](https://travis-ci.org/smart-facility/cognicity-server.svg?branch=master)](https://travis-ci.org/smart-facility/cognicity-server)
 
 Jenkins build status: [![Jenkins build status](https://smart-analytics.eis.uow.edu.au/jenkins/buildStatus/icon?job=cognicity-server)](https://smart-analytics.eis.uow.edu.au/jenkins/buildStatus/icon?job=cognicity-server)
 
