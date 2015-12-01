@@ -327,10 +327,12 @@ CognicityServer.prototype = {
 			text: "SELECT 'FeatureCollection' as type, " +
 			"array_to_json(array_agg(f)) as features " +
 				"FROM (SELECT 'Feature' as type, " +
-					"ST_AsGeoJSON(gauges.the_geom)::json as " +
-					 "geometry, gauges.gaugeid as gauge_id, " +
+					"ST_AsGeoJSON(props.the_geom)::json as geometry, " +
+					"row_to_json(props) as properties " +
+					"FROM (SELECT " +
+					 "the_geom as the_geom, gauges.gaugeid as gauge_id, " +
 						"array_to_json(array_agg(obs)) as " +
-						"properties " +
+						"observations " +
 							"FROM (SELECT gaugeid, " +
 								"measuredatetime, depth FROM " +
 								options.tbl_floodgauges+") obs, " +
@@ -339,7 +341,7 @@ CognicityServer.prototype = {
 								"obs.gaugeid = gauges.gaugeid " +
 								"AND obs.measuredatetime >= to_timestamp($1)" +
 								"AND obs.measuredatetime <= to_timestamp($2)" +
-								"GROUP BY gauges.gaugeid, gauges.the_geom) as f;",
+								"GROUP BY gauges.gaugeid, gauges.the_geom) as props ) as f;",
 				values : [
 					options.start,
 					options.end
