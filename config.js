@@ -77,6 +77,8 @@ config.api.aggregates = {};
 config.api.aggregates.archive = {};
 config.api.aggregates.archive.level = 'rw';
 config.api.time_window = 21600; // 6 hrs
+config.api.floodgauges = {};
+config.api.floodgauges.time_window = 43200; // 12 hrs
 
 // Postgres database connection
 config.pg = {};
@@ -112,7 +114,8 @@ config.pg.aggregate_levels = {
 config.pg.infrastructure_tbls = {
 	'waterways':'waterways',
 	'pumps':'pumps',
-	'floodgates':'floodgates'
+	'floodgates':'floodgates',
+	'floodgauges':'floodgauge_reports'
 };
 config.pg.limit = null; // Limit number of rows returned in a query
 config.pg.uc_limit = null; // Limit number of unconfirmed reports.

@@ -418,11 +418,13 @@ if (config.data === true){
 
 	// Data route for floodgauge readings
 	app.get('/'+config.url_prefix+'/data/api/v2/infrastructure/floodgauges', function(req, res, next){
+		// Get last segment of path - e.g. 'waterways' in '.../infrastructure/waterways'
+		var infrastructureName = req.path.split("/").slice(-1)[0];
 		// Construct Options
 		var options = {
 			start: Math.floor(Date.now()/1000 - config.api.floodgauges.time_window),
 			end: Math.floor(Date.now()/1000), // now
-			tbl_floodgauges: config.pg.tbl_floodgauges
+			tbl_floodgauges: config.pg.infrastructure_tbls[infrastructureName]
 		};
 
 		server.getFloodgauges(options, function(err, data){
