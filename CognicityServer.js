@@ -328,20 +328,16 @@ CognicityServer.prototype = {
 			"array_to_json(array_agg(f)) as features " +
 				"FROM (SELECT 'Feature' as type, " +
 					"ST_AsGeoJSON(props.the_geom)::json as geometry, " +
-					"row_to_json(props) as properties " +
+					"row_to_json((props.gaugeid, props.gaugenameid, props.observations)::prop_type) as properties " +
 					"FROM (SELECT " +
-					 "the_geom as the_geom, gauges.gaugeid as gauge_id, " +
-						"array_to_json(array_agg(obs)) as " +
+					 "the_geom, gaugeid, gaugenameid, " +
+						"array_to_json(array_agg((obs.measuredatetime, obs.depth, obs.warninglevel, obs.warningnameid)::obs_type ORDER BY obs.measuredatetime ASC)) as " +
 						"observations " +
-							"FROM (SELECT gaugeid, " +
-								"measuredatetime, depth FROM " +
-								options.tbl_floodgauges+") obs, " +
-								"(SELECT gaugeid, the_geom FROM " +
-								"floodgauge_reports) gauges WHERE " +
-								"obs.gaugeid = gauges.gaugeid " +
-								"AND obs.measuredatetime >= to_timestamp($1)" +
-								"AND obs.measuredatetime <= to_timestamp($2)" +
-								"GROUP BY gauges.gaugeid, gauges.the_geom) as props ) as f;",
+							"FROM " +
+								options.tbl_floodgauges+" as obs " +
+								"WHERE obs.measuredatetime >= to_timestamp($1) " +
+								"AND obs.measuredatetime <= to_timestamp($2) " +
+								"GROUP BY gaugeid, the_geom, gaugenameid ) as props ) as f;",
 				values : [
 					options.start,
 					options.end
