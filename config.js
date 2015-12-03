@@ -80,7 +80,7 @@ config.api = {};
 config.api.aggregates = {};
 config.api.aggregates.archive = {};
 config.api.aggregates.archive.level = 'rw';
-config.api.time_window = 21600; // 6 hrs
+config.api.time_window = 7200; // 2 hrs
 config.api.floodgauges = {};
 config.api.floodgauges.time_window = 43200; // 12 hrs
 
