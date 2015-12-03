@@ -73,7 +73,7 @@ config.floodwatch = true; // API for Pebble FloodWatch Alerts
 config.compression = false; // Enable express compression middleware
 
 // Enable http to https redirection behind a proxy
-config.redirectHTTP = true;
+config.redirectHTTP = false; // re-enable once testing is complete
 
 // API settings
 config.api = {};
@@ -127,7 +127,7 @@ config.logger = {};
 config.logger.level = "debug"; // What level to log at; info, verbose or debug are most useful. Levels are (npm defaults): silly, debug, verbose, info, warn, error.
 config.logger.maxFileSize = 1024 * 1024 * 100; // Max file size in bytes of each log file; default 100MB
 config.logger.maxFiles = 10; // Max number of log files kept
-config.logger.logDirectory = '.'; // Set this to a full path to a directory - if not set logs will be written to the application directory.
+config.logger.logDirectory = '/var/log/nodejs'; // Set this to a full path to a directory - if not set logs will be written to the application directory.
 
 // Server port
 config.port = process.env.PORT || 8081;
