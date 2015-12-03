@@ -88,12 +88,10 @@ config.api.floodgauges.time_window = 43200; // 12 hrs
 config.pg = {};
 
 // Example postgres string for running on localhost
-config.pg.conString = 'postgres://postgres@localhost/cognicity';
+//config.pg.conString = 'postgres://postgres@localhost/cognicity';
 
-/* Sample connection string using environment variables from AWS Elastic Beanstalk.
+/* Sample connection string using environment variables from AWS Elastic Beanstalk. */
 config.pg.conString = 'postgres://' + process.env.RDS_USERNAME + ':' + process.env.RDS_PASSWORD +'@' + process.env.RDS_HOSTNAME + ':' + process.env.RDS_PORT + '/' + process.env.DB_NAME;
-	On other platforms you would replace those variables as necessary
-*/
 
 /* Example of setting up config.pg.conString for running on IBM bluemix using user-provided postgres running on compose.io
 var vcapServices = JSON.parse(process.env.VCAP_SERVICES)
