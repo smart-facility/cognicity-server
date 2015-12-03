@@ -331,7 +331,7 @@ CognicityServer.prototype = {
 					"row_to_json((props.gaugeid, props.gaugenameid, props.observations)::prop_type) as properties " +
 					"FROM (SELECT " +
 					 "the_geom, gaugeid, gaugenameid, " +
-						"array_to_json(array_agg((obs.measuredatetime, obs.depth, obs.warninglevel, obs.warningnameid)::obs_type ORDER BY obs.measuredatetime ASC)) as " +
+						"array_to_json(array_agg((obs.measuredatetime AT TIME ZONE 'ICT', obs.depth, obs.warninglevel, obs.warningnameid)::obs_type ORDER BY obs.measuredatetime ASC)) as " +
 						"observations " +
 							"FROM " +
 								options.tbl_floodgauges+" as obs " +
