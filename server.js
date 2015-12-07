@@ -23,6 +23,8 @@ var pg = require('pg');
 var cache = require('memory-cache');
 // topojson module, used for response format conversion
 var topojson = require('topojson');
+// Morgan (express logging);
+var morgan = require('morgan');
 // Winston logger module, used for logging
 var logger = require('winston');
 // CognicityServer module, application logic and database interaction is handled here
@@ -84,7 +86,6 @@ pg.on('error', function(err) {
 			}
 		});
 	};
-
 	reconnectionFunction();
 });
 
@@ -114,7 +115,7 @@ if ( config.compression ) {
 }
 
 // Setup express logger
-app.use( express.logger( { stream : winstonStream } ) );
+app.use( morgan('combined', { stream : winstonStream } ) );
 
 // Redirect http to https
 app.use(function redirectHTTP(req, res, next) {
@@ -125,7 +126,7 @@ app.use(function redirectHTTP(req, res, next) {
 });
 
 // Static file server
-app.use(app.router);
+//app.use(app.router);
 app.use('/'+config.url_prefix, express.static(config.public_dir));
 
 // Robots.txt from root
@@ -138,45 +139,37 @@ app.all('/'+config.url_prefix+'/data/*', function(req, res, next){
 	next();
 });
 
-// Route root path to some place.
-app.get('/', function(req, res){
-	res.redirect('/'+config.root_redirect);
-});
-
-app.get('/'+config.url_prefix, function(req, res){
-	res.redirect('/'+config.root_redirect);
-});
-
-// Route empty API path to docs
-app.get('/'+config.url_prefix+'/data/api', function(req, res){
-	res.redirect('/'+config.url_prefix+'/in/data/api/');
-});
-
-// Route empty API path to docs
-app.get('/'+config.url_prefix+'/data/api/v1', function(req, res){
-	res.redirect('/'+config.url_prefix+'/in/data/api/');
-});
-
-// Route data path to docs
-app.get('/'+config.url_prefix+'/data/', function(req, res){
-	res.redirect('/'+config.url_prefix+'/in/data/');
+// Language detection based on client browser
+app.get(['/', '/'+config.root_redirect], function(req, res){
+	if (req.acceptsLanguages(config.languages.locale) !== false){
+		res.redirect('/'+config.root_redirect+'/'+config.languages.locale);
+	}
+	else {
+		res.redirect('/'+config.root_redirect+'/'+config.languages.default);
+	}
 });
 
 if (config.data === true){
 
-	app.get( new RegExp('/'+config.url_prefix+'/data/api/v1/.*'), function(req, res, next){
+	// Depreciate data API v1
+	app.get('/'+config.url_prefix+'/data/api/v1*',function(req, res, next){
+		res.setHeader('Cache-Control','max-age=60');
+		res.redirect(301, '/'+config.url_prefix+'/data/api/v2'+req.params[0]);
+	});
+
+	app.get( new RegExp('/'+config.url_prefix+'/data/api/v2/.*'), function(req, res, next){
 		// See if we've got a cache hit on the request URL
 		var cacheResponse = cache.get(req.originalUrl);
 		// Render the cached response now or let express find the next matching route
-		if (cacheResponse) writeResponse( res, cacheResponse );
+		if (cacheResponse) writeResponse(res, cacheResponse);
 		else next();
 	});
 
 	// Data route for reports
-	app.get('/'+config.url_prefix+'/data/api/v1/reports/confirmed', function(req, res, next){
+	app.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed', function(req, res, next){
 		// Construct options
 		var options = {
-			start: Math.floor(Date.now()/1000 - 3600), // 1 hour ago
+			start: Math.floor(Date.now()/1000 - config.api.time_window),
 			end: Math.floor(Date.now()/1000), // now
 			limit: config.pg.limit,
 			tbl_reports: config.pg.tbl_reports
@@ -187,7 +180,33 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
+				cacheTemporarily(req.originalUrl, responseData);
+				writeResponse(res, responseData);
+			}
+		});
+	});
+
+	// Data Route for individual reports
+	app.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed/:id', function(req, res, next){
+		// Construct internal options
+		var options = {
+			id: parseInt(req.params.id),
+			tbl_reports: config.pg.tbl_reports
+		};
+
+		// Validate parameter
+		if ( !Validation.validateNumberParameter(options.id, 0) ) {
+			next( createErrorWithStatus("'id' parameter is not valid, it must be an integer greater than 1", 400) );
+			return;
+		}
+
+		server.getReport(options, function(err, data){
+			if (err) {
+				next(err);
+			} else {
+				// Prepare the response data, cache it, and write out the response
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -195,7 +214,7 @@ if (config.data === true){
 	});
 
 	// Data route for unconfirmed reports
-	app.get('/'+config.url_prefix+'/data/api/v1/reports/unconfirmed', function(req, res, next){
+	app.get('/'+config.url_prefix+'/data/api/v2/reports/unconfirmed', function(req, res, next){
 		// Construct options
 		var options = {
 			start: Math.floor(Date.now()/1000 - 3600), // 1 hour ago
@@ -209,7 +228,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -217,7 +236,7 @@ if (config.data === true){
 	});
 
 	//Data route for report counts
-	app.get('/'+config.url_prefix+'/data/api/v1/reports/count', function(req, res, next){
+	app.get('/'+config.url_prefix+'/data/api/v2/reports/count', function(req, res, next){
 		// Validate parameter
 		if ( req.query.hours && ['1','3','6','24'].indexOf(req.query.hours)===-1 ) {
 			next( createErrorWithStatus("'hours' parameter must be 1, 3, 6 or 24", 400) );
@@ -260,7 +279,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -268,7 +287,7 @@ if (config.data === true){
 	});
 
 	//Data route for confirmed timeseries
-	app.get('/'+config.url_prefix+'/data/api/v1/reports/timeseries', function(req, res, next){
+	app.get('/'+config.url_prefix+'/data/api/v2/reports/timeseries', function(req, res, next){
 		// Construct options
 		var options = {
 			tbl_reports: config.pg.tbl_reports,
@@ -283,7 +302,7 @@ if (config.data === true){
 			}
 			else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -293,7 +312,7 @@ if (config.data === true){
 	if (config.aggregates === true){
 
 		// Data route for spatio-temporal aggregates
-		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/live', function(req, res, next){
+		app.get('/'+config.url_prefix+'/data/api/v2/aggregates/live', function(req, res, next){
 			// Organise parameter options
 			var tbl;
 			if (req.query.level){
@@ -348,7 +367,7 @@ if (config.data === true){
 					next(err);
 				} else {
 					// Prepare the response data, cache it, and write out the response
-					var responseData = prepareResponse(res, data[0], req.param('format'));
+					var responseData = prepareResponse(res, data[0], req.query.format);
 					cacheTemporarily(req.originalUrl, responseData);
 					writeResponse(res, responseData);
 				}
@@ -356,16 +375,16 @@ if (config.data === true){
 		});
 
 		// Data route for historical aggregate archive
-		app.get('/'+config.url_prefix+'/data/api/v1/aggregates/archive', function(req, res, next){
+		app.get('/'+config.url_prefix+'/data/api/v2/aggregates/archive', function(req, res, next){
 			var options = {
 				point_layer_uc: config.pg.tbl_reports_unconfirmed,
 				point_layer: config.pg.tbl_reports
 			};
 
 			// Parse start time parameter or use default
-			if ( req.param('start_time') ) {
-				options.start_time = req.param('start_time');
-				options.start_time = moment( req.param('start_time'), moment.ISO_8601 ).unix();
+			if ( req.query.start_time ) {
+				options.start_time = req.query.start_time;
+				options.start_time = moment( req.query.start_time, moment.ISO_8601 ).unix();
 
 				// Validate parameter
 				if ( !Validation.validateNumberParameter(options.start_time, 0, Date.now()) ) {
@@ -378,8 +397,8 @@ if (config.data === true){
 			}
 
 			// Parse blocks parameter or use default
-			if ( req.param('blocks') ) {
-				options.blocks = Math.floor( Number(req.param('blocks')) );
+			if ( req.query.blocks ) {
+				options.blocks = Math.floor( Number(req.query.blocks) );
 
 				// Validate parameter
 				if ( !Validation.validateNumberParameter(options.blocks, 1, 24) ) {
@@ -398,14 +417,37 @@ if (config.data === true){
 				if (err) {
 					next(err);
 				} else {
-					var responseData = prepareResponse(res, data[0], req.param('format'));
+					var responseData = prepareResponse(res, data[0], req.query.format);
 					writeResponse(res, responseData);
 				}
 			});
 		});
 	}
 
-	app.get( new RegExp('/'+config.url_prefix+'/data/api/v1/infrastructure/.*'), function(req, res, next){
+	// Data route for floodgauge readings
+	app.get('/'+config.url_prefix+'/data/api/v2/infrastructure/floodgauges', function(req, res, next){
+		// Get last segment of path - e.g. 'waterways' in '.../infrastructure/waterways'
+		var infrastructureName = req.path.split("/").slice(-1)[0];
+		// Construct Options
+		var options = {
+			start: Math.floor(Date.now()/1000 - config.api.floodgauges.time_window),
+			end: Math.floor(Date.now()/1000), // now
+			tbl_floodgauges: config.pg.infrastructure_tbls[infrastructureName]
+		};
+
+		server.getFloodgauges(options, function(err, data){
+			if (err) {
+				next(err);
+			} else {
+				// Prepare the response data, cache it, and write out the response
+				var responseData = prepareResponse(res, data[0], req.query.format);
+				cacheTemporarily(req.originalUrl, responseData);
+				writeResponse(res, responseData);
+			}
+		});
+	});
+
+	app.get( new RegExp('/'+config.url_prefix+'/data/api/v2/infrastructure/.*'), function(req, res, next){
 		// Get last segment of path - e.g. 'waterways' in '.../infrastructure/waterways'
 		var infrastructureName = req.path.split("/").slice(-1)[0];
 		// Construct options object for server query
@@ -423,12 +465,45 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.param('format'));
+				var responseData = prepareResponse(res, data[0], req.query.format);
 				cachePermanently(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
 		});
 	});
+
+	// FloodWatch API
+	if (config.floodwatch === true){
+		// Data route for JSON data of reports by city last hour
+		app.get('/'+config.url_prefix+'/data/api/v2/floodwatch/reports/', function(req,res,next){
+			// Prepare area name
+			var area_name = null;
+			if (req.query.area_name){
+				area_name = req.query.area_name;
+			}
+			// Query options
+			var options = {
+				tbl_reports: config.pg.tbl_reports,
+				polygon_layer: config.pg.aggregate_levels.city,
+				start: Math.floor(Date.now()/1000 - config.api.time_window),
+				end: Math.floor(Date.now()/1000),
+				limit:config.pg.limit,
+				area_name: area_name
+		};
+			// Fetch the data
+			server.getReportsByArea(options, function(err, data){
+				if (err){
+					next(err);
+				}
+				else {
+					// Prepare response data, cache and write out response
+					var responseData = prepareResponse(res, data[0], req.query.format);
+					cacheTemporarily(req.originalUrl, responseData);
+					writeResponse(res, responseData);
+				}
+			});
+		});
+	}
 }
 
 /**
@@ -452,7 +527,7 @@ function cacheTemporarily(cacheKey, data){
 
 // 404 handling
 app.use(function(req, res, next){
-  res.send('Error 404 - Page not found', 404);
+  res.status(404).send('Error 404 - Page not found');
 });
 
 /**

@@ -123,6 +123,11 @@ CognicityServer.prototype = {
 						"(SELECT l FROM " +
 							"(SELECT pkey, " +
 							"created_at at time zone 'ICT' created_at, " +
+							"source, " +
+							"status, " +
+							"url, " +
+							"image_url, " +
+							"title, " +
 							"text) " +
 						" As l) " +
 					") As properties " +
@@ -135,6 +140,52 @@ CognicityServer.prototype = {
 	            options.start,
 	            options.end,
 	            options.limit
+			]
+		};
+
+		// Call data query
+		self.dataQuery(queryObject, callback);
+	},
+
+	/**
+	 * Get an individual confirmed report from the database.
+	 * Call the callback function with error or response data.
+	 * @param {object} options Configuration options for the query
+	 * @param {number} options.id Unique ID for the report
+	 * @param {string} options.tbl_reports Database table for confirmed reports
+	 * @param {DataQueryCallback} callback Callback for handling error or response data
+	 */
+	getReport: function(options, callback){
+		var self = this;
+
+		// Validate options
+		var err;
+		if ( !Validation.validateNumberParameter(options.id,0) ) err = new Error( "'id parameter is invalid" );
+		if ( !options.id && options.id!==null) err = new Error( "'id' options must be supplied" );
+		if ( !options.tbl_reports ) err = new Error( "'tbl_reports' option must be supplied" );
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		// SQL
+		var queryObject = {
+			text: "SELECT 'FeatureCollection' As type, " +
+					"array_to_json(array_agg(f)) As features " +
+				"FROM (SELECT 'Feature' As type, " +
+					"ST_AsGeoJSON(lg.the_geom)::json As geometry, " +
+					"row_to_json( " +
+						"(SELECT l FROM " +
+							"(SELECT pkey, " +
+							"created_at at time zone 'ICT' created_at, " +
+							"text) " +
+						" As l) " +
+					") As properties " +
+					"FROM " + options.tbl_reports + " As lg " +
+					"WHERE pkey = $1 " +
+				" ) As f ;",
+			values: [
+				options.id
 			]
 		};
 
@@ -165,7 +216,7 @@ CognicityServer.prototype = {
 			callback(err);
 			return;
 		}
-		
+
 		// SQL
 		var queryObject = {
 			text: "SELECT 'FeatureCollection' As type, " +
@@ -189,6 +240,109 @@ CognicityServer.prototype = {
 			]
 		};
 
+		// Call data query
+		self.dataQuery(queryObject, callback);
+	},
+
+	/**
+	* Attribute confirmed reports with the name of the containing (parent) city boundary
+	* Return as JSON with location of report as embedded GeoJSON
+	* @param {object} options Configuration options for the query
+	* @param {number} options.start Unix timestamp for start of query period
+	* @param {number} options.end Unix timestamp for end of query period
+	* @param {string} options.area_name Optional name of city as filter
+	* @param {string} options.tbl_reports Database table for confirmed reports
+	* @param {string} options.polygon_layer Database table for city polygons
+	* @param {?number} options.limit Number of results to limit to, or null for all
+	* @param {DataQueryCallback} callback Callback for handling error or response data
+	*/
+	getReportsByArea: function(options, callback){
+		var self = this;
+
+		// Validate Options
+		var err;
+		if ( !Validation.validateNumberParameter(options.start,0) ) err = new Error( "'start' parameter is invalid" );
+		if ( !Validation.validateNumberParameter(options.end,0) ) err = new Error( "'end' parameter is invalid" );
+		if ( !options.tbl_reports ) err = new Error( "'tbl_reports' option must be supplied" );
+		if ( !options.polygon_layer ) err = new Error( "'polygon_layer' option must be supplied" );
+		if ( !options.limit && options.limit!==null ) err = new Error( "'limit' option must be supplied" );
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		// SQL
+		var queryObject = {
+			text: "SELECT array_to_json(array_agg(row_to_json(row))) as data FROM " +
+						"(SELECT a.pkey, " +
+							"a.created_at, " +
+							"a.text, " +
+							"a.source, " +
+							"ST_AsGeoJSON(a.the_geom), " +
+							"b.area_name " +
+						"FROM " + options.tbl_reports + " a, " +
+							options.polygon_layer + " b " +
+						"WHERE created_at >= to_timestamp($1) AND " +
+							"created_at <= to_timestamp($2) AND " +
+							"ST_Within(a.the_geom, b.the_geom) AND " +
+							"($4::varchar is null or b.area_name = $4::varchar) " +
+							"ORDER BY created_at DESC LIMIT $3 ) row;",
+
+			values: [
+				options.start,
+				options.end,
+				options.limit,
+				options.area_name
+			]
+		};
+
+		// Call data query
+		self.dataQuery(queryObject, callback);
+	},
+
+	/**
+	* Get floodgauge readings
+	* Call the callback function with error or response data
+	* @param {object} options Configuration options for the query
+	* @param {number} options.start Unix timestamp for the start time of first available observation
+	* @param {number} options.end Unix timestamp for the end time of the last available observation
+	* @param {string} options.tbl_floodgauges Database table for the floodgauge observations
+	* @param {DataQueryCallback} callback Callback for handling error or response data
+	*/
+	getFloodgauges: function(options, callback){
+		var self = this;
+
+		// Validate options
+		var err;
+		if ( !Validation.validateNumberParameter(options.start,0) ) err = new Error("'start' parameter is invalid" );
+		if ( !Validation.validateNumberParameter(options.end,0)  ) err = new Error("'end' parameter is invalid" );
+		if ( !options.tbl_floodgauges ) err = new Error( "'tbl_floodgauges' option must be supplied" );
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		// SQL
+		var queryObject = {
+			text: "SELECT 'FeatureCollection' as type, " +
+			"array_to_json(array_agg(f)) as features " +
+				"FROM (SELECT 'Feature' as type, " +
+					"ST_AsGeoJSON(props.the_geom)::json as geometry, " +
+					"row_to_json((props.gaugeid, props.gaugenameid, props.observations)::prop_type) as properties " +
+					"FROM (SELECT " +
+					 "the_geom, gaugeid, gaugenameid, " +
+						"array_to_json(array_agg((obs.measuredatetime AT TIME ZONE 'ICT', obs.depth, obs.warninglevel, obs.warningnameid)::obs_type ORDER BY obs.measuredatetime ASC)) as " +
+						"observations " +
+							"FROM " +
+								options.tbl_floodgauges+" as obs " +
+								"WHERE obs.measuredatetime >= to_timestamp($1) " +
+								"AND obs.measuredatetime <= to_timestamp($2) " +
+								"GROUP BY gaugeid, the_geom, gaugenameid ) as props ) as f;",
+				values : [
+					options.start,
+					options.end
+				]
+		};
 		// Call data query
 		self.dataQuery(queryObject, callback);
 	},
@@ -248,7 +402,7 @@ CognicityServer.prototype = {
 	*/
 	getReportsTimeSeries: function(options, callback){
 		var self = this;
-		
+
 		// Validate options
 		var err;
 		if ( !Validation.validateNumberParameter(options.start,0) ) err = new Error( "'start' parameter is invalid" );
@@ -299,7 +453,7 @@ CognicityServer.prototype = {
 	 */
 	getCountByArea: function(options, callback){
 		var self = this;
-		
+
 		// Validate options
 		var err;
 		if ( !Validation.validateNumberParameter(options.start,0) ) err = new Error( "'start' parameter is invalid" );
@@ -380,7 +534,7 @@ CognicityServer.prototype = {
 
 	/**
 	 * Get a series of report counts by polygon layer for a historical time period.
-	 * @param {object} options Configuration options for the query 
+	 * @param {object} options Configuration options for the query
 	 * @param {number} options.start_time Unix timestamp for start of query period
 	 * @param {number} options.blocks Number of hourly blocks to return
 	 * @param {string} options.polygon_layer Database table for layer of geo data
@@ -390,7 +544,7 @@ CognicityServer.prototype = {
 	 */
 	getHistoricalCountByArea: function(options, callback){
 		var self = this;
-		
+
 		// Validate options
 		var err;
 		if ( !Validation.validateNumberParameter(options.start_time,0) ) err = new Error( "'start_time' parameter is invalid" );
@@ -460,7 +614,7 @@ CognicityServer.prototype = {
 	 */
 	getInfrastructure: function(options, callback){
 		var self = this;
-		
+
 		// Validate options
 		if (!options.infrastructureTableName) {
 			callback( new Error("Infrastructure table is not valid") );
