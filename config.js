@@ -72,7 +72,7 @@ config.floodwatch = true; // API for Pebble FloodWatch Alerts
 config.compression = false; // Enable express compression middleware
 
 // Enable http to https redirection behind a proxy
-config.redirectHTTP = false;
+config.redirectHTTP = true;
 
 // API settings
 config.api = {};
