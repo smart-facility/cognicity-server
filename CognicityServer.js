@@ -175,12 +175,17 @@ CognicityServer.prototype = {
 				"FROM (SELECT 'Feature' As type, " +
 					"ST_AsGeoJSON(lg.the_geom)::json As geometry, " +
 					"row_to_json( " +
-						"(SELECT l FROM " +
-							"(SELECT pkey, " +
-							"created_at at time zone 'ICT' created_at, " +
-							"text) " +
-						" As l) " +
-					") As properties " +
+					"(SELECT l FROM " +
+						"(SELECT pkey, " +
+						"created_at at time zone 'ICT' created_at, " +
+						"source, " +
+						"status, " +
+						"url, " +
+						"image_url, " +
+						"title, " +
+						"text) " +
+					" As l) " +
+				") As properties " +
 					"FROM " + options.tbl_reports + " As lg " +
 					"WHERE pkey = $1 " +
 				" ) As f ;",
