@@ -91,6 +91,13 @@ config.pg.reconnectionDelay = 1000 * 60 * 3; // Delay before attempting a reconn
 config.pg.reconnectionAttempts = 5; // Number of times to attempt reconnection before notifying admin and exiting
 // Database tables
 config.pg.tbl_reports = 'all_reports'; // Change to use multiple data sources
+// Support for report admin boundaries required by floodwatch endpoint (getReportsByArea)
+config.pg.aggregate_levels = {
+	'city':'jkt_city_boundary',
+	'subdistrict':'jkt_subdistrict_boundary',
+	'village':'jkt_village_boundary',
+	'rw':'jkt_rw_boundary'
+};
 // Infrastructure tables
 config.pg.infrastructure_tbls = {
 	'waterways':'waterways',
