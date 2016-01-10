@@ -260,7 +260,7 @@ if (config.data === true){
 	});
 
 	// FloodWatch API
-	if (config.floodwatch === true){
+	if (config.api.floodwatch === true){
 		// Data route for JSON data of reports by city last hour
 		app.get('/'+config.url_prefix+'/data/api/v2/floodwatch/reports/', function(req,res,next){
 			// Prepare area name
