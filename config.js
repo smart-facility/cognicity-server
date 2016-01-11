@@ -13,7 +13,7 @@
  * @property {object} languages Multi-language support, should match templates of any static HTML
  * @property {number} cache_timeout How long data will live in the cache, in milliseconds
  * @property {boolean} data If true, enable the data query routes
- * @property {boolean} floodwatch If true, enable the floodwatch query route
+ * @property {boolean} api.floodwatch If true, enable the floodwatch query route
  * @property {boolean} compression If true, enable gzip compression on the server responses
  * @property {object} pg Configuration options for the PostGres connection
  * @property {string} pg.conString The connection URL for PostGres
@@ -57,7 +57,6 @@ config.languages.default= 'en/'; // English
 config.cache_timeout = 60000; // Data cache expiry (1 minute)
 
 config.data = true; // Enable data routes
-config.floodwatch = true; // API for Pebble FloodWatch Alerts
 config.compression = false; // Enable express compression middleware
 
 // Enable http to https redirection behind a proxy
