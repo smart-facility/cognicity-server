@@ -255,7 +255,7 @@ CognicityServer.prototype = {
 	},
 
 	/**
-	* Get floodgauge readings
+	* Get floodgauge readings.
 	* Call the callback function with error or response data
 	* @param {object} options Configuration options for the query
 	* @param {number} options.start Unix timestamp for the start time of first available observation
