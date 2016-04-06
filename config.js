@@ -18,9 +18,9 @@
  * @property {boolean} compression If true, enable gzip compression on the server responses
  * @property {boolean} redirectHTTP If true, redirect HTTP to HTTPS when request originates from a proxy
  * @property {object} api Configuration options for the API
- * @property {number} api.time_window Oldest data to return for confirmed reports and floodwatch data
+ * @property {number} api.time_window Oldest data to return for confirmed reports and floodwatch data (in seconds)
  * @property {object} api.floodgauges Floodgauge configuration items
- * @property {number} api.floodgauges.time_window Oldest data to return for floodgauge data
+ * @property {number} api.floodgauges.time_window Oldest data to return for floodgauge data (in seconds)
  * @property {boolean} api.floodwatch If true, enable the floodwatch query route
  * @property {object} pg Configuration options for the PostGres connection
  * @property {string} pg.conString The connection URL for PostGres
