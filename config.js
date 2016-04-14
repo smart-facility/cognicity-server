@@ -60,8 +60,8 @@ config.root_redirect = 'banjir';
 
 // Dual language support
 config.languages = {};
-config.languages.locale = 'id/'; // Indonesian
-config.languages.default= 'en/'; // English
+config.languages.locale = 'id'; // Indonesian
+config.languages.default= 'en'; // English
 
 // Default cache time expiry
 config.cache_timeout = 60000; // Data cache expiry (1 minute)
