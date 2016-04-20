@@ -198,7 +198,7 @@ if (config.data === true){
 	app.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed/:id', function(req, res, next){
 		// Construct internal options
 		var options = {
-			id: parseInt(req.params.id),
+			id: Number(req.params.id),
 			tbl_reports: config.pg.tbl_reports
 		};
 

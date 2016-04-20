@@ -161,7 +161,6 @@ CognicityServer.prototype = {
 		// Validate options
 		var err;
 		if ( !Validation.validateNumberParameter(options.id,0) ) err = new Error( "'id parameter is invalid" );
-		if ( !options.id && options.id!==null) err = new Error( "'id' options must be supplied" );
 		if ( !options.tbl_reports ) err = new Error( "'tbl_reports' option must be supplied" );
 		if (err) {
 			callback(err);
@@ -204,10 +203,10 @@ CognicityServer.prototype = {
 	* @param {object} options Configuration options for the query
 	* @param {number} options.start Unix timestamp for start of query period
 	* @param {number} options.end Unix timestamp for end of query period
-	* @param {string} options.area_name Optional name of city as filter
+	* @param {string=} options.area_name Optional name of city as filter
 	* @param {string} options.tbl_reports Database table for confirmed reports
 	* @param {string} options.polygon_layer Database table for city polygons
-	* @param {?number} options.limit Number of results to limit to, or null for all
+	* @param {number=} options.limit Number of results to limit to, or null for all
 	* @param {DataQueryCallback} callback Callback for handling error or response data
 	*/
 	getReportsByArea: function(options, callback){
@@ -219,12 +218,17 @@ CognicityServer.prototype = {
 		if ( !Validation.validateNumberParameter(options.end,0) ) err = new Error( "'end' parameter is invalid" );
 		if ( !options.tbl_reports ) err = new Error( "'tbl_reports' option must be supplied" );
 		if ( !options.polygon_layer ) err = new Error( "'polygon_layer' option must be supplied" );
-		if ( !options.limit && options.limit!==null ) err = new Error( "'limit' option must be supplied" );
+		if ( typeof options.limit !== 'undefined' && options.limit !== null && !Validation.validateNumberParameter(options.limit) ) err = new Error( "'limit' option must be supplied" );
 		if (err) {
 			callback(err);
 			return;
 		}
 
+		// Set default values
+		if ( !options.limit ) {
+			options.limit = 'ALL';
+		}
+		
 		// SQL
 		var queryObject = {
 			text: "SELECT array_to_json(array_agg(row_to_json(row))) as data FROM " +

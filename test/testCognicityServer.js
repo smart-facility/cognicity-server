@@ -208,6 +208,13 @@ describe( "getReport validation", function() {
 		test.undefined( callbackData );
 	});
 
+	it( "should throw an error with an invalid 'id' parameter", function() {
+		server.getReport( createOptions('rose', 'magnolia'), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
 	it( "should throw an error with an invalid 'pkey' parameter", function() {
 		server.getReport( createOptions('green', 'magnolia'), callback );
 		test.bool( dataQueryCalled ).isFalse();
@@ -217,6 +224,168 @@ describe( "getReport validation", function() {
 
 	it( "should throw an error with an invalid 'tbl_reports' parameter", function() {
 		server.getReport( createOptions(1, null), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	after( function(){
+		server.dataQuery = oldDataQuery;
+	});
+});
+
+describe( "getReportsByArea validation", function() {
+	var oldDataQuery;
+	var dataQueryCalled;
+	var callbackErr;
+	var callbackData;
+	var callbackDataResponse = 'response';
+
+	function createOptions(start,end,tbl_reports,polygon_layer,limit){
+		return {
+			start: start,
+			end: end,
+			tbl_reports: tbl_reports,
+			polygon_layer: polygon_layer,
+			limit: limit
+		};
+	}
+
+	function callback(err,data) {
+		callbackErr = err;
+		callbackData = data;
+	}
+
+	before( function() {
+		oldDataQuery = server.dataQuery;
+		server.dataQuery = function(queryOptions, callback){
+			dataQueryCalled = true;
+			callback(null,callbackDataResponse);
+		};
+	});
+
+	beforeEach( function() {
+		dataQueryCalled = false;
+		callbackErr = null;
+		callbackData = null;
+	});
+	
+	// Called when we expect a test to have passed and called the database
+	function assertSuccess() {
+		test.bool( dataQueryCalled ).isTrue();
+		test.value( callbackErr ).isNull();
+		test.value( callbackData ).is( callbackDataResponse );
+	}
+	
+	// Called when we expect a test to have failed and returned an error
+	function assertFailure() {
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	}
+
+	it( "should call the database if parameters are valid", function() {
+		server.getReportsByArea( createOptions(1, 2, 'tbl_reports', 'polygon_layer', 5), callback );
+		assertSuccess();
+	});
+
+	it( "should throw an error with an invalid 'start' parameter", function() {
+		server.getReportsByArea( createOptions(null, 2, 'tbl_reports', 'polygon_layer', 5), callback );
+		assertFailure();
+	});
+
+	it( "should throw an error with an invalid 'end' parameter", function() {
+		server.getReportsByArea( createOptions(1, null, 'tbl_reports', 'polygon_layer', 5), callback );
+		assertFailure();
+	});
+
+	it( "should throw an error with an invalid 'tbl_reports' parameter", function() {
+		server.getReportsByArea( createOptions(1, 2, null, 'polygon_layer', 5), callback );
+		assertFailure();
+	});
+
+	it( "should throw an error with an invalid 'polygon_layer' parameter", function() {
+		server.getReportsByArea( createOptions(1, 2, 'tbl_reports', null, 5), callback );
+		assertFailure();
+	});
+
+	it( "should throw an error with an invalid 'limit' parameter", function() {
+		server.getReportsByArea( createOptions(1, 2, 'tbl_reports', 'polygon_layer', 'foo'), callback );
+		assertFailure();
+	});
+
+	it( "should allow limit parameter of 'null'", function() {
+		server.getReportsByArea( createOptions(1, 2, 'tbl_reports', 'polygon_layer', null), callback );
+		assertSuccess();
+	});
+
+	it( "should allow limit parameter of 'undefined'", function() {
+		server.getReportsByArea( createOptions(1, 2, 'tbl_reports', 'polygon_layer', undefined), callback );
+		assertSuccess();
+	});
+
+	after( function(){
+		server.dataQuery = oldDataQuery;
+	});
+});
+
+describe( "getFloodgauges validation", function() {
+	var oldDataQuery;
+	var dataQueryCalled;
+	var callbackErr;
+	var callbackData;
+	var callbackDataResponse = 'water';
+
+	function createOptions(start, end, tbl_floodgauges){
+		return {
+			start: start,
+			end: end,
+			tbl_floodgauges: tbl_floodgauges
+		};
+	}
+
+	function callback(err,data) {
+		callbackErr = err;
+		callbackData = data;
+	}
+
+	before( function() {
+		oldDataQuery = server.dataQuery;
+		server.dataQuery = function(queryOptions, callback){
+			dataQueryCalled = true;
+			callback(null,callbackDataResponse);
+		};
+	});
+
+	beforeEach( function() {
+		dataQueryCalled = false;
+		callbackErr = null;
+		callbackData = null;
+	});
+
+	it( "should call the database if parameters are valid", function() {
+		server.getFloodgauges( createOptions(1, 2, 'tbl_floodgauges'), callback );
+		test.bool( dataQueryCalled ).isTrue();
+		test.value( callbackErr ).isNull();
+		test.value( callbackData ).is( callbackDataResponse );
+	});
+
+	it( "should throw an error with an invalid 'start' parameter", function() {
+		server.getFloodgauges( createOptions(null, 2, 'tbl_floodgauges'), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'end' parameter", function() {
+		server.getFloodgauges( createOptions(1, null, 'tbl_floodgauges'), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'tbl_floodgauges' parameter", function() {
+		server.getFloodgauges( createOptions(1, 2, null), callback );
 		test.bool( dataQueryCalled ).isFalse();
 		test.object( callbackErr ).isInstanceOf( Error );
 		test.undefined( callbackData );
