@@ -21,6 +21,8 @@ var express = require('express');
 var pg = require('pg');
 // memory-cache module, used to cache responses
 var cache = require('memory-cache');
+// Node.js fs filesystem module
+var fs = require('fs');
 // topojson module, used for response format conversion
 var topojson = require('topojson');
 // Morgan (express logging);
@@ -42,6 +44,13 @@ var app = express();
 // Logging
 // Configure custom File transport to write plain text messages
 var logPath = ( config.logger.logDirectory ? config.logger.logDirectory : __dirname );
+// Check that log file directory can be written to
+try {
+	fs.accessSync(logPath, fs.W_OK);
+} catch (e) {
+	console.log( "Log directory '" + logPath + "' cannot be written to"  );
+	throw e;
+}
 logPath += path.sep;
 logPath += config.instance + ".log";
 
@@ -189,7 +198,7 @@ if (config.data === true){
 	app.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed/:id', function(req, res, next){
 		// Construct internal options
 		var options = {
-			id: parseInt(req.params.id),
+			id: Number(req.params.id),
 			tbl_reports: config.pg.tbl_reports
 		};
 

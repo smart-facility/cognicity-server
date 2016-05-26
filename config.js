@@ -11,15 +11,25 @@
  * @property {string} url_prefix Prefix for start of public URLs
  * @property {string} root_redirect If the user browses to '/', redirect them to here
  * @property {object} languages Multi-language support, should match templates of any static HTML
+ * @property {object} languages.local Language codes which are accepted by this server
+ * @property {object} languages.default Default language code to serve if we cannot supply the requested one to the user
  * @property {number} cache_timeout How long data will live in the cache, in milliseconds
  * @property {boolean} data If true, enable the data query routes
- * @property {boolean} api.floodwatch If true, enable the floodwatch query route
  * @property {boolean} compression If true, enable gzip compression on the server responses
+ * @property {boolean} redirectHTTP If true, redirect HTTP to HTTPS when request originates from a proxy
+ * @property {object} api Configuration options for the API
+ * @property {number} api.time_window Oldest data to return for confirmed reports and floodwatch data (in seconds)
+ * @property {object} api.floodgauges Floodgauge configuration items
+ * @property {number} api.floodgauges.time_window Oldest data to return for floodgauge data (in seconds)
+ * @property {boolean} api.floodwatch If true, enable the floodwatch query route
  * @property {object} pg Configuration options for the PostGres connection
  * @property {string} pg.conString The connection URL for PostGres
  * @property {number} pg.reconnectionDelay The delay between attempts to reconnect to PostGres
  * @property {number} pg.reconnectionAttempts The number of attempts to reconnect to PostGres before exiting
  * @property {string} pg.tbl_reports Database table containing confirmed reports
+ * @property {object} pg.aggregate_levels Object of aggregate levels mapping a name to a database table
+ * @property {string} pg.aggregate_levels.(name) Name of the aggregate level
+ * @property {string} pg.aggregate_levels.(value) Database table for the aggregate level
  * @property {object} pg.infrastructure_tbls Object of infrastructure tables mapping a name to a database table
  * @property {string} pg.infrastructure_tbls.(name) Name of the infrastructure type
  * @property {string} pg.infrastructure_tbls.(value) Database table for the infrastructure type
@@ -50,8 +60,8 @@ config.root_redirect = 'banjir';
 
 // Dual language support
 config.languages = {};
-config.languages.locale = 'id/'; // Indonesian
-config.languages.default= 'en/'; // English
+config.languages.locale = 'id'; // Indonesian
+config.languages.default= 'en'; // English
 
 // Default cache time expiry
 config.cache_timeout = 60000; // Data cache expiry (1 minute)

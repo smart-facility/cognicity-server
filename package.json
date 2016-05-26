@@ -26,7 +26,7 @@
   },
   "scripts": {
     "test": "npm run jshint && npm run mocha",
-    "jshint": "jshint config.js server.js CognicityServer.js Validation.js test/testServer.js test/testCognicityServer.js test/testValidation.js",
+    "jshint": "jshint config.js server.js CognicityServer.js Validation.js test/test-config.js test/testServer.js test/testCognicityServer.js test/testValidation.js",
     "mocha": "mocha test",
     "build-docs": "jsdoc -d docs package.json config.js server.js CognicityServer.js Validation.js",
     "build": "npm test && npm run build-docs && npm run coverage",

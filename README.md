@@ -21,19 +21,20 @@ Cognicity-server is the NodeJS server module for the CogniCity framework, respon
 * [PostgreSQL](http://www.postgresql.org) version 9.2 or later, with [PostGIS](http://postgis.net/) version 2.0 or later
 
 #### Node Modules
-* [Express](http://expressjs.com/) version 3.2.6 or compatible
+* [Express](http://expressjs.com/) version 4.13.3 or compatible
 * [Node-Postgres](https://github.com/brianc/node-postgres) version 3.0.0 or compatible
 * [Memory-Cache](https://github.com/ptarjan/node-cache) version 0.0.5 or compatible
-* [topojson](https://github.com/mbostock/topojson) version 1.6.14 or compatible
-* [winston](https://github.com/flatiron/winston) version 0.8.1 or compatible
-* [moment](https://github.com/moment/moment) version 2.8.4 or compatible
+* [topojson](https://github.com/mbostock/topojson) version 1.6.19 or compatible
+* [winston](https://github.com/flatiron/winston) version 0.8.3 or compatible
+* [moment](https://github.com/moment/moment) version 2.10.6 or compatible
+* [morgan](https://github.com/expressjs/morgan) version 1.6.1 or compatible
 
 #### Dev Modules
-* [jshint](https://github.com/jshint/node-jshint) version 2.5.8 or compatible
-* [unit.js](http://unitjs.com/) version 1.0.2 or compatible
-* [mocha](http://mochajs.org/) version 2.0.1 or compatible
-* [jsdoc](https://github.com/jsdoc3/jsdoc) version 3.2.0 or compatible
-* [istanbul](https://github.com/gotwarlost/istanbul) version 0.3.5 or compatible
+* [jshint](https://github.com/jshint/node-jshint) version 2.8.0 or compatible
+* [unit.js](http://unitjs.com/) version 2.0.0 or compatible
+* [mocha](http://mochajs.org/) version 2.3.3 or compatible
+* [jsdoc](https://github.com/jsdoc3/jsdoc) version 3.3.3 or compatible
+* [istanbul](https://github.com/gotwarlost/istanbul) version 0.4.0 or compatible
 
 ### Installation
 Download the source code for cognicity-server from github: [https://github.com/smart-facility/cognicity-server](https://github.com/smart-facility/cognicity-server) or view the CogniCity installation documentation at [http://cognicity.info](http://cognicity.info).
@@ -92,13 +93,9 @@ Cognicity-server requires a database that conforms to the [Cognicity framework s
 
 #### Data Routes
 The following routes exist:
-* `/data/api/v1/reports/confirmed` - Confirmed reports
-* `/data/api/v1/reports/unconfirmed` - Unconfirmed reports
-* `/data/api/v1/reports/count` - Count only of reports
-* `/data/api/v1/reports/timeseries` - Report counts in hourly intervals
-* `/data/api/v1/aggregates/live` - Live aggregates
-* `/data/api/v1/aggregates/archive` - Archived aggregates
-* `/data/api/v1/infrastructure/*` - Infrastructure data
+* `/data/api/v2/reports/confirmed` - Confirmed reports
+* `/data/api/v2/floodwatch/reports` - Floodwatch reports
+* `/data/api/v2/infrastructure/*` - Infrastructure data
 
 A URL parameter of `format=topojson` can be appended to any route to receive the response data in topojson format.
 
