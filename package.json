@@ -12,8 +12,7 @@
     "topojson": "^1.6.19",
     "morgan": "^1.6.1",
     "winston" : "^0.8.3",
-    "moment": "^2.10.6",
-    "fs": "^0.0.2"
+    "moment": "^2.10.6"
   },
   "devDependencies": {
     "jsdoc": "^3.3.3",
