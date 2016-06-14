@@ -17,7 +17,7 @@ Cognicity-server is the NodeJS server module for the CogniCity framework, respon
 [http://cognicity.info/cognicity/api-docs/cognicity-server/index.html](http://cognicity.info/cognicity/api-docs/cognicity-server/index.html)
 
 ### Dependencies
-* [NodeJS](http://nodejs.org) version 0.10.16 or later
+* [NodeJS](http://nodejs.org) version 4.2.1 or later
 * [PostgreSQL](http://www.postgresql.org) version 9.2 or later, with [PostGIS](http://postgis.net/) version 2.0 or later
 
 #### Node Modules
