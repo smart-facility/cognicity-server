@@ -8,7 +8,7 @@ Travis build status: [![Travis Build Status](https://travis-ci.org/smart-facilit
 
 Jenkins build status: [![Jenkins build status](https://smart-analytics.eis.uow.edu.au/jenkins/buildStatus/icon?job=cognicity-server)](https://smart-analytics.eis.uow.edu.au/jenkins/buildStatus/icon?job=cognicity-server)
 
-DOI for current stable release [v1.0.4](https://github.com/smart-facility/cognicity-server/releases/tag/v1.0.4): [![DOI](https://zenodo.org/badge/19201/smart-facility/cognicity-server.svg)](https://zenodo.org/badge/latestdoi/19201/smart-facility/cognicity-server)
+DOI for current stable release [v2.0.0](https://github.com/smart-facility/cognicity-server/releases/tag/v2.0.0): [![DOI](https://zenodo.org/badge/19201/smart-facility/cognicity-server.svg)](https://zenodo.org/badge/latestdoi/19201/smart-facility/cognicity-server)
 
 ### About
 Cognicity-server is the NodeJS server module for the CogniCity framework, responsible for serving reports and web content. For detailed framework documentation see [http://cognicity.info](http://cognicity.info)
