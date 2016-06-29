@@ -228,7 +228,7 @@ CognicityServer.prototype = {
 		if ( !options.limit ) {
 			options.limit = 'ALL';
 		}
-		
+
 		// SQL
 		var queryObject = {
 			text: "SELECT array_to_json(array_agg(row_to_json(row))) as data FROM " +
@@ -256,6 +256,57 @@ CognicityServer.prototype = {
 
 		// Call data query
 		self.dataQuery(queryObject, callback);
+	},
+
+	/**
+	* Get floodsensor readings.
+	* Call the callback function with error or response data
+	* @param {object} options Configuration options for the query
+	* @param {number} options.start Unix timestamp for the start time of first available observation
+	* @param {number} options.end Unix timestamp for the end time of the last available observation
+	* @param {string} options.tbl_sensor_data Database table for the floodsensor observations
+	* @param {string} options.tbl_sensor_metadata Database table for the floodsensor metadata
+	* @param {DataQueryCallback} callback Callback for handling error or response data
+	*/
+	getFloodsensors: function(options, callback){
+	  var self = this;
+
+	  // Validate options
+	  var err;
+	  if ( !Validation.validateNumberParameter(options.start,0) ) err = new Error("'start' parameter is invalid" );
+	  if ( !Validation.validateNumberParameter(options.end,0)  ) err = new Error("'end' parameter is invalid" );
+	  if ( !options.tbl_sensor_data ) err = new Error( "'tbl_sensor_data' option must be supplied" );
+		if ( !options.tbl_sensor_metadata ) err = new Error( "'tbl_sensor_metadata' option must be supplied" );
+	  if (err) {
+	    callback(err);
+	    return;
+	  }
+
+	  // SQL
+	  var queryObject = {
+	    text: "SELECT 'FeatureCollection' as type, " +
+	    "array_to_json(array_agg(f)) as features " +
+	      "FROM (SELECT 'Feature' as type, " +
+	        "ST_AsGeoJSON(props.location)::json as geometry, " +
+	        "row_to_json((props.id, props.height_above_riverbed, props.measurements)::sensor_metadata_type) as properties " +
+	        "FROM (SELECT " +
+	         "m.location, m.id, m.height_above_riverbed, " +
+	          "array_to_json(array_agg((obs.measurement_time AT TIME ZONE 'ICT', obs.distance, obs.temperature, obs.humidity)::sensor_data_type ORDER BY obs.measurement_time ASC)) as " +
+	          "measurements " +
+	            "FROM " +
+	              options.tbl_sensor_data+" as obs, " +
+								options.tbl_sensor_metadata+" as m " +
+	              "WHERE obs.sensor_id = m.id " +
+								"AND obs.measurement_time >= to_timestamp($1) " +
+	              "AND obs.measurement_time <= to_timestamp($2) " +
+	              "GROUP BY m.location, m.id, m.height_above_riverbed ) as props ) as f;",
+	      values : [
+	        options.start,
+	        options.end
+	      ]
+	  };
+	  // Call data query
+	  self.dataQuery(queryObject, callback);
 	},
 
 	/**

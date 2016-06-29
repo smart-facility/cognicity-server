@@ -108,6 +108,11 @@ config.pg.aggregate_levels = {
 	'village':'jkt_village_boundary',
 	'rw':'jkt_rw_boundary'
 };
+// IoT floodsensors
+config.pg.iot_floodsensors = {
+	'sensor_data':'sensor_data',
+	'sensor_metadata': 'sensor_metadata'
+};
 // Infrastructure tables
 config.pg.infrastructure_tbls = {
 	'waterways':'waterways',

@@ -220,6 +220,29 @@ if (config.data === true){
 		});
 	});
 
+	// Data route for IoT floodsensor readings
+	app.get('/'+config.url_prefix+'/data/api/v2/iot/floodsensors', function(req, res, next){
+		// Construct Options
+		var options = {
+			start: 0,//Math.floor(Date.now()/1000 - config.api.floodgauges.time_window),
+			end: Math.floor(Date.now()/1000), // now
+			tbl_sensor_data: config.pg.iot_floodsensors.sensor_data,
+			tbl_sensor_metadata: config.pg.iot_floodsensors.sensor_metadata
+		};
+
+		server.getFloodsensors(options, function(err, data){
+			if (err) {
+				next(err);
+			} else {
+				// Prepare the response data, cache it, and write out the response
+				var responseData = prepareResponse(res, data[0], req.query.format);
+				cacheTemporarily(req.originalUrl, responseData);
+				writeResponse(res, responseData);
+			}
+		});
+	});
+
+
 	// Data route for floodgauge readings
 	app.get('/'+config.url_prefix+'/data/api/v2/infrastructure/floodgauges', function(req, res, next){
 		// Get last segment of path - e.g. 'waterways' in '.../infrastructure/waterways'
