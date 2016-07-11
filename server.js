@@ -249,7 +249,7 @@ if (config.data === true){
 		var infrastructureName = req.path.split("/").slice(-1)[0];
 		// Construct Options
 		var options = {
-			start: 0,//Math.floor(Date.now()/1000 - config.api.floodgauges.time_window),
+			start: Math.floor(Date.now()/1000 - config.api.floodgauges.time_window),
 			end: Math.floor(Date.now()/1000), // now
 			tbl_floodgauges: config.pg.infrastructure_tbls[infrastructureName]
 		};
