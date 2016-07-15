@@ -226,7 +226,7 @@ CognicityServer.prototype = {
 
 		// Set default values
 		if ( !options.limit ) {
-			options.limit = 'ALL';
+			options.limit = null;
 		}
 
 		// SQL
