@@ -6,20 +6,21 @@
   "preferGlobal": false,
   "private": true,
   "dependencies": {
-    "express": "^4.13.3",
-    "memory-cache": "^0.0.5",
-    "pg": "^3.0.0",
-    "topojson": "^1.6.19",
-    "morgan": "^1.6.1",
-    "winston" : "^0.8.3",
-    "moment": "^2.10.6"
+    "express": "^4.14.0",
+    "istanbul": "^0.4.4",
+    "memory-cache": "0.1.6",
+    "moment": "^2.14.1",
+    "morgan": "^1.7.0",
+    "pg": "^6.0.3",
+    "topojson": "^1.6.26",
+    "winston": "^2.2.0"
   },
   "devDependencies": {
-    "jsdoc": "^3.3.3",
+    "jsdoc": "^3.4.0",
     "jshint": "^2.8.0",
-    "mocha": "^2.3.3",
+    "mocha": "^3.0.0-1",
     "unit.js": "^2.0.0",
-    "istanbul": "^0.4.0"
+    "istanbul": "^0.4.4"
   },
   "engines": {
     "node": "^4.2.1"
