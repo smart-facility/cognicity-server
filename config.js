@@ -76,6 +76,7 @@ config.redirectHTTP = true;
 config.api = {};
 config.api.time_window = 7200; // 2 hrs
 config.api.floodgauges = {};
+config.api.floodsensors = {};
 config.api.floodgauges.time_window = 43200; // 12 hrs
 config.api.floodsensors.time_window = 4*3600; // 4 hrs
 config.api.floodwatch = true; // enable floodwatch API
