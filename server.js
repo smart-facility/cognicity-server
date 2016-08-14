@@ -224,7 +224,7 @@ if (config.data === true){
 	app.get('/'+config.url_prefix+'/data/api/v2/iot/smartsensors', function(req, res, next){
 		// Construct Options
 		var options = {
-			start: 0,//Math.floor(Date.now()/1000 - config.api.floodgauges.time_window),
+			start: Math.floor(Date.now()/1000 - config.api.floodsensors.time_window),
 			end: Math.floor(Date.now()/1000), // now
 			tbl_sensor_data: config.pg.iot_floodsensors.sensor_data,
 			tbl_sensor_metadata: config.pg.iot_floodsensors.sensor_metadata
