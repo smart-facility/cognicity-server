@@ -291,7 +291,7 @@ CognicityServer.prototype = {
 	        "row_to_json((props.id, props.height_above_riverbed, props.measurements)::sensor_metadata_type) as properties " +
 	        "FROM (SELECT " +
 	         "m.location, m.id, m.height_above_riverbed, " +
-	          "array_to_json(array_agg((obs.measurement_time AT TIME ZONE 'EDT', obs.distance, m.height_above_riverbed - obs.distance, obs.temperature, obs.humidity)::sensor_data_type ORDER BY obs.measurement_time ASC)) as " +
+	          "array_to_json(array_agg((obs.measurement_time AT TIME ZONE 'AESST', obs.distance, m.height_above_riverbed - obs.distance, obs.temperature, obs.humidity)::sensor_data_type ORDER BY obs.measurement_time ASC)) as " +
 	          "measurements " +
 	            "FROM " +
 	              options.tbl_sensor_data+" as obs, " +
