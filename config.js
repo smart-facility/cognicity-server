@@ -88,7 +88,7 @@ config.pg = {};
 // config.pg.conString = 'postgres://postgres@localhost/cognicity';
 
 /* Sample connection string using environment variables from AWS Elastic Beanstalk. */
-config.pg.conString = 'postgres://' + process.env.DB_USERNAME + ':' + process.env.DB_PASSWORD +'@' + process.env.DB_HOSTNAME + ':' + process.env.DB_PORT + '/' + process.env.DB_NAME + '?ssl=true';
+config.pg.conString = 'postgres://' + process.env.PGUSERNAME + ':' + process.env.PGPASSWORD +'@' + process.env.PGHOSTNAME + ':' + process.env.PGPORT + '/' + process.env.PGDATABSE + '?ssl=true';
 /*	On other platforms you would replace those variables as necessary
 */
 
